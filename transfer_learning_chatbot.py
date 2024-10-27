@@ -16,6 +16,10 @@ model_name = "OpenAssistant/oasst-sft-1-pythia-12b"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
+# Check if GPU is available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
+
 # Define a sample user input
 user_input = "Hello! How are you today?"
 input_ids = tokenizer.encode(user_input, return_tensors="pt")
