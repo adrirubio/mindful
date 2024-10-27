@@ -20,7 +20,7 @@ model = AutoModelForCausalLM.from_pretrained(model_name)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Define a sample user input
-user_input = "Hello! How are you today?"
+user_input = "Hello! what are you doing?"
 input_ids = tokenizer.encode(user_input, return_tensors="pt")
 output = model.generate(input_ids, max_length=40, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
 response = tokenizer.decode(output[0], skip_special_tokens=True)
