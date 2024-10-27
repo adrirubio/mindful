@@ -1,11 +1,11 @@
 import torch
-torch.cuda.empty.cache()
+torch.cuda.empty_cache()
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
-import matpotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 # Load DailyDialog dataset
