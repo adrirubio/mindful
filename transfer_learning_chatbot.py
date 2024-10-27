@@ -12,17 +12,16 @@ from datetime import datetime
 dataset = load_dataset("daily_dialog")
 
 # Load the pre-trained OpenAssistant model and tokenizer
-model_name = "OpenAssistant/oasst-sft-1-pythia-12b"
+model_name = "facebook/opt-350m"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
 # Check if GPU is available
 device = "cuda" if torch.cuda.is_available() else "cpu"
-print(device)
 
 # Define a sample user input
 user_input = "Hello! How are you today?"
 input_ids = tokenizer.encode(user_input, return_tensors="pt")
-output = model.generate(input_ids, max_length=100, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
+output = model.generate(input_ids, max_length=40, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
 response = tokenizer.decode(output[0], skip_special_tokens=True)
 print(response)
