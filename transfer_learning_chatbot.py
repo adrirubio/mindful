@@ -33,3 +33,6 @@ test_dialog = dataset["test"]["dialog"]
 print(f"Train set size: {len(train_dialog)}")
 print(f"Test set size: {len(test_dialog)}")
 
+# Create a simple custom Dataset class
+class DailyDialogDataset(Dataset):
+    def __init__(self, dialogues, tokenizer, max_length=512):
