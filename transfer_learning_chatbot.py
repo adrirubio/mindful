@@ -33,6 +33,22 @@ test_dialog = dataset["test"]["dialog"]
 print(f"Train set size: {len(train_dialog)}")
 print(f"Test set size: {len(test_dialog)}")
 
-# Create a simple custom Dataset class
 class DailyDialogDataset(Dataset):
     def __init__(self, dialogues, tokenizer, max_length=512):
+        self.dialogues = dialogues
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def __len__(self):
+        return(len(self.dialogues))
+
+    def __getitem__(self, idx):
+        dialogue = " ".join(self.dialogues[idx])
+        encoded = self.tokenizer(dialogue, truncation=True, padding='max_length', max_length=self.max_length, return_tensors='pt')
+        input_ids = encoded['input_ids'].squeeze()
+        attention_mask = encoded['attention_mask'].squeeze()
+        return input_ids, input_ids  # Returning input_ids as both input and target
+
+# Create train and test datasets instances
+train_dataset = DailyDialogDataset(train_dialog, tokenizer)
+test_dataset = DailyDialogDataset(test_dialog, tokenizer)
