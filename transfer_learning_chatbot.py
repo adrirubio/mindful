@@ -25,3 +25,11 @@ input_ids = tokenizer.encode(user_input, return_tensors="pt")
 output = model.generate(input_ids, max_length=40, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
 response = tokenizer.decode(output[0], skip_special_tokens=True)
 print(response)
+
+# Access the dialog sections
+train_dialog = dataset["train"]["dialog"]
+test_dialog = dataset["test"]["dialog"]
+
+print(f"Train set size: {len(train_dialog)}")
+print(f"Test set size: {len(test_dialog)}")
+
