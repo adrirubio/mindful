@@ -52,3 +52,5 @@ class DailyDialogDataset(Dataset):
 # Create train and test datasets instances
 train_dataset = DailyDialogDataset(train_dialog, tokenizer)
 test_dataset = DailyDialogDataset(test_dialog, tokenizer)
+
+# Create batches for improved computational efficiency
