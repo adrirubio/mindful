@@ -65,3 +65,4 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=batch_size,
     shuffle=False
 )
+
