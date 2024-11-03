@@ -78,3 +78,5 @@ for layer in model.transformer.h[-4:]: # Unfreeze last 4 layers
 # Loss and Optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=le-5, weight_decay=0.01)
+
+# Training loop
