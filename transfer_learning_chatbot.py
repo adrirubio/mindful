@@ -80,4 +80,11 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
-def batch_gd
+def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
+    train_losses = np.zeros(epochs)
+    test_losses = np.zeros(epochs)
+    for it in range(epoch):
+        t0 = datetime.now()
+        train_loss = []
+        model.train()
+        
