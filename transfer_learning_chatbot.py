@@ -87,4 +87,4 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
         t0 = datetime.now()
         train_loss = []
         model.train()
-        
+        for batch in
