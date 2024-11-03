@@ -44,9 +44,9 @@ class DailyDialogDataset(Dataset):
 
     def __getitem__(self, idx):
         dialogue = " ".join(self.dialogues[idx])
-        encoded = self.tokenizer(dialogue, truncation=True, padding='max_length', max_length=self.max_length, return_tensors='pt')
-        input_ids = encoded['input_ids'].squeeze()
-        attention_mask = encoded['attention_mask'].squeeze()
+        encoded = self.tokenizer(dialogue, truncation=True, padding="max_length", max_length=self.max_length, return_tensors='pt')
+        input_ids = encoded["input_ids"].squeeze()
+        attention_mask = encoded["attention_mask"].squeeze()
         return input_ids, input_ids  # Returning input_ids as both input and target
 
 # Create train and test datasets instances
@@ -87,4 +87,5 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
         t0 = datetime.now()
         train_loss = []
         model.train()
-        for batch in
+        for batch in train_loader():
+            # Get batch data
