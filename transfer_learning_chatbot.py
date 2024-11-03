@@ -69,7 +69,7 @@ test_loader = torch.utils.data.DataLoader(
 # Unfreeze some layers
 for param in model.transformer.wte.parameters():
     param.requires_grad = True
-for param in model.transformer.wpe.paramaters():
+for param in model.transformer.wpe.parameters():
     param.requires_grad = True
 for layer in model.transformer.h[-4:]: # Unfreeze last 4 layers
     for param in layer.parameters():
@@ -77,6 +77,7 @@ for layer in model.transformer.h[-4:]: # Unfreeze last 4 layers
 
 # Loss and Optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=le-5, weight_decay=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
+def batch_gd
