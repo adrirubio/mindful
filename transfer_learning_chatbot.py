@@ -91,13 +91,13 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
             # Get batch data
             input_ids, labels = batch
             input_ids = input_ids.to(device)
-            targets = lables.to(device)
+            targets = labels.to(device)
 
             # Zero the parameter gradients
             optimizer.zero_grad()
 
             # Forward pass
-            ouptuts = model(input_ids, targets)
+            ouptuts = model(input_ids=input_ids, targets=targets)
             loss = output.loss
 
             # Backward pass
@@ -120,12 +120,12 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
         with torch.no_grad():
             for batch in test_loader():
                 # Get batch data
-                input_ids, lables = batch
+                input_ids, labels = batch
                 input_ids = input_ids.to(device)
                 targets = labels.to(device)
 
                 # Forward pass
-                outputs = model(input_ids, targets)
+                outputs = model(input_ids=input_ids, targets=targets)
                 loss = outputs.loss
                 test_loss.append(loss.item())
 
