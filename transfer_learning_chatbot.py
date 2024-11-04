@@ -79,7 +79,7 @@ for layer in model.transformer.h[-4:]: # Unfreeze last 4 layers
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
-def batch_gd(model, optimizer, train_loader, test_loader, epochs):
+def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
     train_losses = np.zeros(epochs)
     test_losses = np.zeros(epochs)
     for it in range(epochs):
