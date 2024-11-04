@@ -16,10 +16,6 @@ model_name = "facebook/opt-350m"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Move model to GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
-
 # Define a sample user input
 user_input = "Hello! How are you?"
 input_ids = tokenizer.encode(user_input, return_tensors="pt")
@@ -76,6 +72,10 @@ for param in model.model.decoder.embed_positions.parameters():
 for layer in model.model.decoder.layers[-4:]:
     for param in layer.parameters():
         param.requires_grad = True
+
+# Move model to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
 # Define the optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
