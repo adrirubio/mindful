@@ -101,4 +101,14 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
             loss = output.loss
 
             # Backward pass
-            
+            loss.backward()
+
+            # Clip gradients
+            torch.nn.utilis.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
+            # Update weights
+            optimizer.step()
+
+            train_loss.append(loss.item())
+
+        # Get train loss and test loss
