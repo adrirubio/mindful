@@ -111,7 +111,7 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
 
             train_loss.append(loss.item())
 
-        # Get train loss and test loss
+        # Get train loss
         train_loss = np.mean(train_loss) # a little misleading
 
         # Evaluation phase
@@ -127,5 +127,7 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
                 # Forward pass
                 outputs = model(input_ids, targets)
                 loss = outputs.loss
+                test_loss.append(loss.item())
 
-                
+            # Get test loss
+            test_loss = np.mean(test_loss)
