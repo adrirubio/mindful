@@ -89,3 +89,16 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
         model.train()
         for batch in train_loader():
             # Get batch data
+            input_ids, labels = batch
+            input_ids = input_ids.to(device)
+            targets = lables.to(device)
+
+            # Zero the gradients
+            optimizer.zero_grad()
+
+            # Forward pass
+            ouptuts = model(input_ids, targets)
+            loss = output.loss
+
+            # Backward pass
+            
