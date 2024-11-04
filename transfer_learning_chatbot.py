@@ -75,36 +75,35 @@ for layer in model.transformer.h[-4:]: # Unfreeze last 4 layers
     for param in layer.parameters():
         param.requires_grad = True
 
-# Loss and Optimizer
-criterion = nn.CrossEntropyLoss()
+# Optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
-def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
+def batch_gd(model, optimizer, train_loader, test_loader, epochs):
     train_losses = np.zeros(epochs)
     test_losses = np.zeros(epochs)
-    for it in range(epoch):
+    for it in range(epochs):
         t0 = datetime.now()
         train_loss = []
         model.train()
-        for batch in train_loader():
+        for batch in train_loader:
             # Get batch data
             input_ids, labels = batch
             input_ids = input_ids.to(device)
-            targets = labels.to(device)
+            labels = labels.to(device)
 
             # Zero the parameter gradients
             optimizer.zero_grad()
 
             # Forward pass
-            ouptuts = model(input_ids=input_ids, targets=targets)
-            loss = output.loss
+            outputs = model(input_ids=input_ids, labels=labels)
+            loss = outputs.loss
 
             # Backward pass
             loss.backward()
 
             # Clip gradients
-            torch.nn.utilis.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
             # Update weights
             optimizer.step()
@@ -116,21 +115,21 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
 
         # Evaluation phase
         model.eval()
-
+        test_loss = []
         with torch.no_grad():
-            for batch in test_loader():
+            for batch in test_loader:
                 # Get batch data
                 input_ids, labels = batch
                 input_ids = input_ids.to(device)
-                targets = labels.to(device)
+                labels = labels.to(device)
 
                 # Forward pass
-                outputs = model(input_ids=input_ids, targets=targets)
+                outputs = model(input_ids=input_ids, labels=labels)
                 loss = outputs.loss
                 test_loss.append(loss.item())
 
-            # Get test loss
-            test_loss = np.mean(test_loss)
+        # Get test loss
+        test_loss = np.mean(test_loss)
 
         # Save losses
         train_losses[it] = train_loss
@@ -141,3 +140,12 @@ def batch_gd(model, criterion, optimizer, train_loader, test_loader, epochs):
               f"Test Loss: {test_loss:.4f}, Duration: {dt}")
 
     return train_losses, test_losses
+
+train_losses, test_losses = batch_gd(
+    model=model,
+    optimizer=optimizer,
+    train_loader=train_loader,
+    test_loader=test_loader,
+    epochs=10,
+    device=device
+)
