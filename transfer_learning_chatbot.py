@@ -151,3 +151,9 @@ train_losses, test_losses = batch_gd(
     epochs=10,
     device=device
 )
+
+# Plot the loss
+plt.plot(train_losses, label="train_loss")
+plt.plot(test_losses, label="test_loss")
+plt.legend()
+plt.show()
