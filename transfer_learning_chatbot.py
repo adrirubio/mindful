@@ -157,5 +157,3 @@ plt.plot(train_losses, label="train_loss")
 plt.plot(test_losses, label="test_loss")
 plt.legend()
 plt.show()
-
-# Save the model
