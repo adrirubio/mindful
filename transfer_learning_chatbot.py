@@ -157,3 +157,10 @@ plt.plot(train_losses, label="train_loss")
 plt.plot(test_losses, label="test_loss")
 plt.legend()
 plt.show()
+
+# Save model
+model_save_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
+torch.save(model.save.dict(), model_save_path)
+print(f"Model saved to {model_save_path}")
+
+
