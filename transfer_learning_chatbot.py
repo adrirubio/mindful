@@ -162,3 +162,9 @@ plt.show()
 model_save_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
 torch.save(model.save.dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
+
+# Accuracy
+n_correct = 0
+n_total = 0
+for batch in train_loader:
+    input_ids, labels = batch
