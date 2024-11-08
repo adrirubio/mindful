@@ -160,7 +160,7 @@ plt.show()
 
 # Save model
 model_save_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
-torch.save(model.save.dict(), model_save_path)
+torch.save(model.state.dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
 
 # Accuracy
