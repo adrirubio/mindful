@@ -196,8 +196,10 @@ for batch in test_loader:
     # Get predictions
     _, predictions = torch.max(outputs, 1)
 
+    # Update counts
+    n_correct += (predictions == targets).sum().item()
+    n_total += targets.shape[0]
 
+test_acc = n_correct / n_total
 
-
-
-
+print(f"Train acc: {train_acc:.4f}, Test acc: {test_acc:.4f}")
