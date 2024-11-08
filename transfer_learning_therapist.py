@@ -13,3 +13,8 @@ chatbot_model_path = "transfer_learning_chatbot.pth"
 chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 chatbot_model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 chatbot_model.load_state_dict(torch.load(chatbot_model_path))
+
+# Prepare model for training
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+chatbot_model.to(device)
+chatbot_model.train() # Set to training mode
