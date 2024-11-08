@@ -168,3 +168,9 @@ n_correct = 0
 n_total = 0
 for batch in train_loader:
     input_ids, labels = batch
+    input_ids = input_ids.to(device)
+    labels = labels.to(device)
+
+    # Forward pass
+    outputs = model(input_ids=input_ids, labels=labels)
+    loss = output.loss
