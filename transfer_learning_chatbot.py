@@ -173,4 +173,31 @@ for batch in train_loader:
 
     # Forward pass
     outputs = model(input_ids=input_ids, labels=labels)
-    loss = output.loss
+
+    # Get predictions
+    _, predictions = torch.max(outputs, 1)
+
+    # Update counts
+    n_correct += (predictions == targets).sum().item()
+    n_total += targets.shape[0]
+
+train_acc = n_correct / n_total
+
+n_correct = 0
+n_total = 0
+for batch in test_loader:
+    input_ids, labels = batch
+    input_ids = input_ids.to(device)
+    labels = labels.to(device)
+
+    # Forward pass
+    outputs = model(input_ids=input_ids, labels=labels)
+
+    # Get predictions
+    _, predictions = torch.max(outputs, 1)
+
+
+
+
+
+
