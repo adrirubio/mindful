@@ -18,3 +18,6 @@ chatbot_model.load_state_dict(torch.load(chatbot_model_path))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 chatbot_model.to(device)
 chatbot_model.train() # Set to training mode
+
+# Load the therapy dataset
+dataset = load_dataset("Amod/mental_health_counseling_conversations")
