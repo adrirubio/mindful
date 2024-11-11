@@ -21,3 +21,7 @@ chatbot_model.train() # Set to training mode
 
 # Load the mental health dataset
 dataset = load_dataset("Amod/mental_health_counseling_conversations")
+
+# Print some examples
+print(dataset["train"][0])
+print(dataset["test"][0])
