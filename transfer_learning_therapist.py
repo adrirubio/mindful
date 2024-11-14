@@ -24,6 +24,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the mental health dataset
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
+print(dataset[0])  # Print the first item to understand its structure
+
 
 class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):  # Added train parameter
@@ -33,17 +35,17 @@ class TherapyDataset(Dataset):
         # Divide the dataset into train and test
         split = int(len(dataset) * 0.9)
         if train:
-            self.dataset = dataset[:split]
+            self.dataset = list(dataset[:split])
         else:
-            self.dataset = dataset[split:]
+            self.dataset = list(dataset[split:])
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
         # Format the conversation
-        conversation = (f"Patient: {dataset[0]['patient']}\n"
-                      f"Therapist: {dataset[0]['therapist']}")
+        conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
+                        f"Therapist: {self.dataset[idx]['Response']}")
 
         # Tokenize - fixed method name from tokenize to tokenizer
         encodings = self.tokenizer(
