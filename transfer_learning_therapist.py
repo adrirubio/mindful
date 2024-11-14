@@ -26,37 +26,50 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 print(dataset[0])  # Print the first item to understand its structure
 
-
 class TherapyDataset(Dataset):
-    def __init__(self, dataset, tokenizer, max_length=512, train=True):  # Added train parameter
+    def __init__(self, dataset, tokenizer, max_length=512, train=True):
         self.tokenizer = tokenizer
         self.max_length = max_length
 
-        # Divide the dataset into train and test
-        split = int(len(dataset) * 0.9)
+        # Convert the dataset to a list of dictionaries
+        dataset = dataset.to_dict()  # Convert to a dictionary where each key is a column
+
+        split = int(len(dataset["Context"]) * 0.9)  # Adjusted to use the 'Context' column length
         if train:
-            self.dataset = dataset[:split]
+            self.dataset = dataset["Context"][:split]  # Use the specific columns
+            self.responses = dataset["Response"][:split]
         else:
-            self.dataset = dataset[split:]
+            self.dataset = dataset["Context"][split:]
+            self.responses = dataset["Response"][split:]
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        # Define `conversation` directly, assuming fields are accessible as shown
-        conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
-                        f"Therapist: {self.dataset[idx]['Response']}")
+        # Check the structure of self.dataset[idx] by printing
+        print(f"Item {idx}: {self.dataset[idx]}")  # Remove this after debugging
 
-        # Tokenize
-        encodings = self.tokenizer(
-            conversation,
+        # Tokenize each field separately
+        context_encodings = self.tokenizer(
+            self.dataset[idx],  # Assuming it's just the "Context"
             truncation=True,
             max_length=self.max_length,
             padding="max_length",
             return_tensors="pt"
         )
 
-        return {k: v.squeeze(0) for k, v in encodings.items()}
+        response_encodings = self.tokenizer(
+            self.responses[idx],  # Assuming it's just the "Response"
+            truncation=True,
+            max_length=self.max_length,
+            padding="max_length",
+            return_tensors="pt"
+        )
+
+        return {
+            "Context": {k: v.squeeze(0) for k, v in context_encodings.items()},
+            "Response": {k: v.squeeze(0) for k, v in response_encodings.items()}
+        }
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
