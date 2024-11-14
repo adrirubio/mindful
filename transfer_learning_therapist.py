@@ -23,11 +23,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # chatbot_model.train() # Set to training mode
 
 # Load the mental health dataset
-dataset = load_dataset("Amod/mental_health_counseling_conversations")
+dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 
 class TherapyDataset(Dataset):
-    def __init__(self, dataset, tokenizer, max_length=512):
-        self.dataset = dataset
+    def __init__(self, dataset, tokenizer, max_length=512, train=True):  # Added train parameter
         self.tokenizer = tokenizer
         self.max_length = max_length
 
@@ -46,8 +45,8 @@ class TherapyDataset(Dataset):
         conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
                         f"Therapist: {self.dataset[idx]['Response']}")
 
-        # Tokenize
-        encodings = self.tokenize(
+        # Tokenize - fixed method name from tokenize to tokenizer
+        encodings = self.tokenizer(
             conversation,
             truncation=True,
             max_length=self.max_length,
@@ -60,5 +59,9 @@ class TherapyDataset(Dataset):
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
+
+# Print some examples
+print(train_dataset[0])
+print(test_dataset[0])
 
 
