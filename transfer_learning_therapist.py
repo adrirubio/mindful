@@ -42,8 +42,8 @@ class TherapyDataset(Dataset):
 
     def __getitem__(self, idx):
         # Format the conversation
-        conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
-                        f"Therapist: {self.dataset[idx]['Response']}")
+        conversation = (f"Patient: {dataset[0]['patient']}\n"
+                      f"Therapist: {dataset[0]['therapist']}")
 
         # Tokenize - fixed method name from tokenize to tokenizer
         encodings = self.tokenizer(
