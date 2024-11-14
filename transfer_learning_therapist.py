@@ -11,9 +11,10 @@ from datetime import datetime
 # Load chatbot tokenizer and model
 # chatbot_tokenizer_path = "facebook/opt-350m"
 # chatbot_model_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
-chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
+# chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 # chatbot_model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 # chatbot_model.load_state_dict(torch.load(chatbot_model_path))
+chatbot_tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-cased")
 
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
