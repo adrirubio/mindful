@@ -30,13 +30,11 @@ class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):
         self.tokenizer = tokenizer
         self.max_length = max_length
+        dataset = dataset.to_dict()
 
-        # Convert the dataset to a list of dictionaries
-        dataset = dataset.to_dict()  # Convert to a dictionary where each key is a column
-
-        split = int(len(dataset["Context"]) * 0.9)  # Adjusted to use the 'Context' column length
+        split = int(len(dataset["Context"]) * 0.9)
         if train:
-            self.dataset = dataset["Context"][:split]  # Use the specific columns
+            self.dataset = dataset["Context"][:split]
             self.responses = dataset["Response"][:split]
         else:
             self.dataset = dataset["Context"][split:]
@@ -46,12 +44,10 @@ class TherapyDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        # Check the structure of self.dataset[idx] by printing
-        print(f"Item {idx}: {self.dataset[idx]}")  # Remove this after debugging
 
         # Tokenize each field separately
         context_encodings = self.tokenizer(
-            self.dataset[idx],  # Assuming it's just the "Context"
+            self.dataset[idx],
             truncation=True,
             max_length=self.max_length,
             padding="max_length",
@@ -59,7 +55,7 @@ class TherapyDataset(Dataset):
         )
 
         response_encodings = self.tokenizer(
-            self.responses[idx],  # Assuming it's just the "Response"
+            self.responses[idx],
             truncation=True,
             max_length=self.max_length,
             padding="max_length",
