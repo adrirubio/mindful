@@ -43,18 +43,11 @@ class TherapyDataset(Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        # Format the conversation
-        # Print to check the structure of self.dataset[idx]
-        print(type(self.dataset[idx]), self.dataset[idx])  # Temporary debug line
-    
-        # Assuming `self.dataset[idx]` is a dictionary with "Context" and "Response"
-        try:
-            conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
+        # Define `conversation` directly, assuming fields are accessible as shown
+        conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
                         f"Therapist: {self.dataset[idx]['Response']}")
-        except TypeError:
-            raise TypeError("Each item in dataset is not a dictionary. Check dataset structure.")
 
-        # Tokenize - fixed method name from tokenize to tokenizer
+        # Tokenize
         encodings = self.tokenizer(
             conversation,
             truncation=True,
