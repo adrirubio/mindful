@@ -35,17 +35,24 @@ class TherapyDataset(Dataset):
         # Divide the dataset into train and test
         split = int(len(dataset) * 0.9)
         if train:
-            self.dataset = list(dataset[:split])
+            self.dataset = dataset[:split]
         else:
-            self.dataset = list(dataset[split:])
+            self.dataset = dataset[split:]
 
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, idx):
         # Format the conversation
-        conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
+        # Print to check the structure of self.dataset[idx]
+        print(type(self.dataset[idx]), self.dataset[idx])  # Temporary debug line
+    
+        # Assuming `self.dataset[idx]` is a dictionary with "Context" and "Response"
+        try:
+            conversation = (f"Patient: {self.dataset[idx]['Context']}\n"
                         f"Therapist: {self.dataset[idx]['Response']}")
+        except TypeError:
+            raise TypeError("Each item in dataset is not a dictionary. Check dataset structure.")
 
         # Tokenize - fixed method name from tokenize to tokenizer
         encodings = self.tokenizer(
