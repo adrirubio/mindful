@@ -2,7 +2,7 @@ import torch
 torch.cuda.empty_cache()
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
 from datasets import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,8 +13,9 @@ from datetime import datetime
 # chatbot_model_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
 # chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 # chatbot_model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
-# chatbot_model.load_state_dict(torch.load(chatbot_model_path))
-chatbot_tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-cased")
+# chatbot_model.load_state_dict(torch.load(chatbot_model_path)
+chatbot_tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
+
 
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -57,7 +58,7 @@ class TherapyDataset(Dataset):
         return {k: v.squeeze(0) for k, v in encodings.items()}
 
 # Create train and test datasets using the class
-train_dataset = TherapyDataset(dataset, tokenizer, train=True)
-test_dataset = TherapyDataset(dataset, tokenizer, train=False)
+train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
+test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
 
