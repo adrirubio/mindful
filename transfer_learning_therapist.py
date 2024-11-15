@@ -31,41 +31,37 @@ class TherapyDataset(Dataset):
         self.tokenizer = tokenizer
         self.max_length = max_length
         dataset = dataset.to_dict()
-
         split = int(len(dataset["Context"]) * 0.9)
+
         if train:
-            self.dataset = dataset["Context"][:split]
-            self.responses = dataset["Response"][:split]
+            self.dataset = {
+                'Context': dataset["Context"][:split],
+                'Response': dataset["Response"][:split]
+            }
         else:
-            self.dataset = dataset["Context"][split:]
-            self.responses = dataset["Response"][split:]
+            self.dataset = {
+                'Context': dataset["Context"][split:],
+                'Response': dataset["Response"][split:]
+            }
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.dataset['Context'])
 
     def __getitem__(self, idx):
+        # Format the conversation as requested
+        conversation = (f"Patient: {self.dataset['Context'][idx]}\n"
+                      f"Therapist: {self.dataset['Response'][idx]}")
 
-        # Tokenize each field separately
-        context_encodings = self.tokenizer(
-            self.dataset[idx],
+        # Tokenize the entire conversation as a single piece of text
+        encodings = self.tokenizer(
+            conversation,
             truncation=True,
             max_length=self.max_length,
             padding="max_length",
             return_tensors="pt"
         )
 
-        response_encodings = self.tokenizer(
-            self.responses[idx],
-            truncation=True,
-            max_length=self.max_length,
-            padding="max_length",
-            return_tensors="pt"
-        )
-
-        return {
-            "Context": {k: v.squeeze(0) for k, v in context_encodings.items()},
-            "Response": {k: v.squeeze(0) for k, v in response_encodings.items()}
-        }
+        return {k: v.squeeze(0) for k, v in encodings.items()}
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
