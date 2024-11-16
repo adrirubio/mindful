@@ -24,7 +24,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the mental health dataset
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
-print(dataset[0])  # Print the first item to understand its structure
 
 class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):
@@ -67,8 +66,10 @@ class TherapyDataset(Dataset):
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
-# Print some examples
-print(train_dataset[0])
-print(test_dataset[0])
+train_dataset = train_dataset.dataset
+test_dataset = test_dataset.dataset
 
+# Print some examples
+print(dict(train_dataset[0]))
+print(dict(test_dataset[0]))
 
