@@ -74,5 +74,20 @@ test_dataset = test_dataset.dataset
 print("Context: " + train_dataset['Context'][0])
 print("Response: " + train_dataset['Response'][0])
 
-print("Context: " + test_dataset['Context'][14])
-print("Response: " + test_dataset['Response'][14])
+print("Context: " + test_dataset['Context'][0])
+print("Response: " + test_dataset['Response'][0])
+
+# Batches
+batch_size = 8
+train_loader = torch.utils.data.DataLoader(
+    train_dataset,
+    batch_size=batch_size,
+    shuffle=True
+
+)
+test_loader = torch.utils.data.DataLoader(
+    test_dataset,
+    batch_size=batch_size,
+    shuffle=True
+)
+
