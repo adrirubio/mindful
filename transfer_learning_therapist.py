@@ -69,7 +69,9 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 train_dataset = train_dataset.dataset
 test_dataset = test_dataset.dataset
 
+print("Context: " + train_dataset['Context'][0])
+print("Response: " + train_dataset['Response'][0])
+
 # Print some examples
 print(dict(train_dataset[0]))
 print(dict(test_dataset[0]))
-
