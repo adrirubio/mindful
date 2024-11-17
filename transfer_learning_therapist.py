@@ -99,3 +99,13 @@ for param in model.model.decoder.embed_tokens.parameters():
 for param in model.model.decoder.embed_positions.parameters():
     param.requires_grad = True
 
+for layer in model.model.decoder.layers[-4:]:
+    for param in layer.parameters():
+        param.requires_grad = True
+
+for param in model.lm_head.parameters():
+    param.requires_grad = True
+
+# Define the optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
+
