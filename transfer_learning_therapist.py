@@ -109,3 +109,13 @@ for param in model.lm_head.parameters():
 # Define the optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
+# Training loop
+def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
+    train_losses = np.zeros[it]
+    test_losses = np.zeros[it]
+    for it in range(epochs):
+        t0 = datetime.now()
+        train_loss = []
+        model.train()
+        for batch in train_loader:
+            # Get batch data
