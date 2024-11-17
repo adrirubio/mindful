@@ -119,4 +119,21 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         model.train()
         for batch in train_loader:
             # Get batch data
+            # Each batch now contains the tokenized conversation pairs
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
             
+            # For sequence-to-sequence tasks like this, we want the model 
+            # to predict the response tokens
+            labels = input_ids.clone()
+            
+            # Set the context tokens in labels to -100 so they're ignored in loss calculation
+            # We only want to calculate loss on the response portion
+            sep_token_locations = (input_ids == chatbot_tokenizer.sep_token_id).nonzero()
+            for i in range(input_ids.shape[0]):  # For each item in batch
+                # Find where the therapist response starts (after "Therapist:")
+                response_start = (input_ids[i] == chatbot_tokenizer.encode("Therapist:", add_special_tokens=False)[0]).nonzero()
+                if len(response_start) > 0:
+                    context_end = response_start[0].item()
+                    # Set context tokens to -100 in labels (ignored in loss calculation)
+                    labels[i, :context_end] = -100
