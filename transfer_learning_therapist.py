@@ -119,3 +119,4 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         model.train()
         for batch in train_loader:
             # Get batch data
+            
