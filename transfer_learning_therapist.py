@@ -12,7 +12,7 @@ from datetime import datetime
 # chatbot_tokenizer_path = "facebook/opt-350m"
 # chatbot_model_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
 # chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
-# chatbot_model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
+model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 # chatbot_model.load_state_dict(torch.load(chatbot_model_path)
 chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
 
@@ -60,7 +60,12 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        return {k: v.squeeze(0) for k, v in encodings.items()}
+        item = {
+            'input_ids': encoding['input_ids'].squeeze(0),
+            'attention_mask': encoding['attention_mask'].squeeze(0),
+        }
+
+        return item
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
@@ -71,11 +76,11 @@ test_dataset = test_dataset.dataset
 
 
 # Print some examples
-print("Context: " + train_dataset['Context'][0])
-print("Response: " + train_dataset['Response'][0])
+print("Context: " + train_dataset['input_ids'][0])
+print("Response: " + train_dataset['attention_mask'][0])
 
-print("Context: " + test_dataset['Context'][0])
-print("Response: " + test_dataset['Response'][0])
+print("Context: " + test_dataset['input_ids'][0])
+print("Response: " + test_dataset['attention_mask'][0])
 
 # Batches
 batch_size = 8
@@ -119,21 +124,6 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         model.train()
         for batch in train_loader:
             # Get batch data
-            # Each batch now contains the tokenized conversation pairs
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
-            
-            # For sequence-to-sequence tasks like this, we want the model 
-            # to predict the response tokens
             labels = input_ids.clone()
-            
-            # Set the context tokens in labels to -100 so they're ignored in loss calculation
-            # We only want to calculate loss on the response portion
-            sep_token_locations = (input_ids == chatbot_tokenizer.sep_token_id).nonzero()
-            for i in range(input_ids.shape[0]):  # For each item in batch
-                # Find where the therapist response starts (after "Therapist:")
-                response_start = (input_ids[i] == chatbot_tokenizer.encode("Therapist:", add_special_tokens=False)[0]).nonzero()
-                if len(response_start) > 0:
-                    context_end = response_start[0].item()
-                    # Set context tokens to -100 in labels (ignored in loss calculation)
-                    labels[i, :context_end] = -100
