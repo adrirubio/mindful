@@ -91,3 +91,11 @@ test_loader = torch.utils.data.DataLoader(
     shuffle=True
 )
 
+# Unfreeze some layers
+for param in model.parameters():
+    param.requires_grad = False
+for param in model.model.decoder.embed_tokens.parameters():
+    param.requires_grad = True
+for param in model.model.decoder.embed_positions.parameters():
+    param.requires_grad = True
+
