@@ -60,12 +60,7 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        item = {
-            'input_ids': encoding['input_ids'].squeeze(0),
-            'attention_mask': encoding['attention_mask'].squeeze(0),
-        }
-
-        return item
+        return {k: v.squeeze(0) for k, v in encodings.items()}
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
@@ -76,11 +71,11 @@ test_dataset = test_dataset.dataset
 
 
 # Print some examples
-print("Context: " + train_dataset['input_ids'][0])
-print("Response: " + train_dataset['attention_mask'][0])
+print("Context: " + train_dataset['Context'][0])
+print("Response: " + train_dataset['Response'][0])
 
-print("Context: " + test_dataset['input_ids'][0])
-print("Response: " + test_dataset['attention_mask'][0])
+print("Context: " + test_dataset['Context'][0])
+print("Response: " + test_dataset['Response'][0])
 
 # Batches
 batch_size = 8
