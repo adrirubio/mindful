@@ -60,7 +60,15 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        return {k: v.squeeze(0) for k, v in encodings.items()}
+        # Create labels (shift input_ids right by 1)
+        labels = encodings['input_ids'].clone()
+        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
+
+        return {
+            'input_ids': encodings['input_ids'].squeeze(0),
+            'attention_mask': encodings['attention_mask'].squeeze(0),
+            'labels': labels.squeeze(0)
+        }
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
@@ -119,6 +127,9 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         model.train()
         for batch in train_loader:
             # Get batch data
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
+            input_ids = batch["Context"].to(device)
+            attention_mask = batch["Response"].to(device)
             labels = input_ids.clone()
+
+            print (input_ids)
+            print(attention_mask)
