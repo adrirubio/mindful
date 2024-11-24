@@ -178,8 +178,8 @@ for batch in train_loader:
     _, predictions = torch.max(outputs, 1)
 
     # Update counts
-    n_correct += (predictions == targets).sum().item()
-    n_total += targets.shape[0]
+    n_correct += (predictions == labels).sum().item()
+    n_total += labels.shape[0]
 
 train_acc = n_correct / n_total
 
@@ -197,8 +197,8 @@ for batch in test_loader:
     _, predictions = torch.max(outputs, 1)
 
     # Update counts
-    n_correct += (predictions == targets).sum().item()
-    n_total += targets.shape[0]
+    n_correct += (predictions == labels).sum().item()
+    n_total += labels.shape[0]
 
 test_acc = n_correct / n_total
 
