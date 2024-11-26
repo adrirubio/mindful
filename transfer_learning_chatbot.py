@@ -11,7 +11,7 @@ from datetime import datetime
 # Load DailyDialog dataset
 dataset = load_dataset("daily_dialog")
 
-# Load the pre-trained OpenAssistant model and tokenizer
+# Load the pre trained OpenAssistant model and tokenizer
 model_name = "facebook/opt-350m"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
