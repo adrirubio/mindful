@@ -74,17 +74,7 @@ class TherapyDataset(Dataset):
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
-print(chatbot_tokenizer.decode(train_dataset[0]))
-
-train_dataset = train_dataset.dataset
-test_dataset = test_dataset.dataset
-
-# Print some examples
-print("Context: " + train_dataset['Context'][0])
-print("Response: " + train_dataset['Response'][0])
-
-print("Context: " + test_dataset['Context'][0])
-print("Response: " + test_dataset['Response'][0])
+print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
 
 # Batches
 batch_size = 8
