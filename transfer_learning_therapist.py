@@ -77,7 +77,6 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 train_dataset = train_dataset.dataset
 test_dataset = test_dataset.dataset
 
-
 # Print some examples
 print("Context: " + train_dataset['Context'][0])
 print("Response: " + train_dataset['Response'][0])
@@ -122,17 +121,14 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
 def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
-    train_losses = np.zeros[it]
-    test_losses = np.zeros[it]
+    train_losses = np.zeros(epochs)
+    test_losses = np.zeros(epochs)
     for it in range(epochs):
         t0 = datetime.now()
         train_loss = []
         model.train()
         for batch in train_loader:
             # Get batch data
-            input_ids = batch["Context"].to(device)
-            attention_mask = batch["Response"].to(device)
-            labels = input_ids.clone()
-
-            print (input_ids)
-            print(attention_mask)
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
