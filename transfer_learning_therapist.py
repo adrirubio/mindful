@@ -74,6 +74,8 @@ class TherapyDataset(Dataset):
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
+print(train_dataset[0])
+
 train_dataset = train_dataset.dataset
 test_dataset = test_dataset.dataset
 
