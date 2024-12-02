@@ -121,3 +121,4 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
+
