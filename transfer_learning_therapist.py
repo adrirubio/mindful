@@ -8,6 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+### Temporary changes
+
 # Load chatbot tokenizer and model
 # chatbot_tokenizer_path = "facebook/opt-350m"
 # chatbot_model_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
