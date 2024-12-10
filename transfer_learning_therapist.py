@@ -24,7 +24,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # chatbot_model.to(device)
 # chatbot_model.train() # Set to training mode
 
-# Load the mental health dataset
+# Load the mental health dataset (train section)
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 
 class TherapyDataset(Dataset):
