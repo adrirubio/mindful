@@ -80,7 +80,7 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
 print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
 
-# Batches
+# Load batches
 batch_size = 8
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
