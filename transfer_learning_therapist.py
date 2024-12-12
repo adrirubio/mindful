@@ -78,7 +78,7 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
 # Print some examples
 print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
-print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
+print(chatbot_tokenizer.decode(test_dataset[0]['input_ids']))
 
 # Load batches
 batch_size = 8
