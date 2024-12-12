@@ -45,31 +45,49 @@ class TherapyDataset(Dataset):
                 'Response': dataset["Response"][split:]
             }
 
+        # Set pad token if not already set
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
     def __len__(self):
         return len(self.dataset['Context'])
 
     def __getitem__(self, idx):
-        # Format the conversation as requested
-        conversation = (f"Patient: {self.dataset['Context'][idx]}\n"
-                      f"Therapist: {self.dataset['Response'][idx]}")
-
-        # Tokenize the entire conversation as a single piece of text
-        encodings = self.tokenizer(
-            conversation,
+        # Tokenize patient context separately
+        patient_context = self.dataset['Context'][idx]
+        patient_encodings = self.tokenizer(
+            patient_context, 
             truncation=True,
             max_length=self.max_length,
-            padding="max_length",
+            padding='max_length',
             return_tensors="pt"
         )
 
-        # Create labels (shift input_ids right by 1)
-        labels = encodings['input_ids'].clone()
-        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
+        # Tokenize therapist response separately
+        therapist_response = self.dataset['Response'][idx]
+        response_encodings = self.tokenizer(
+            therapist_response, 
+            truncation=True,
+            max_length=self.max_length,
+            padding='max_length',
+            return_tensors="pt"
+        )
+
+        # Create labels for patient context (set pad tokens to -100)
+        patient_labels = patient_encodings['input_ids'].clone()
+        patient_labels[patient_labels == self.tokenizer.pad_token_id] = -100
+
+        # Create labels for therapist response (set pad tokens to -100)
+        response_labels = response_encodings['input_ids'].clone()
+        response_labels[response_labels == self.tokenizer.pad_token_id] = -100
 
         return {
-            'input_ids': encodings['input_ids'].squeeze(0),
-            'attention_mask': encodings['attention_mask'].squeeze(0),
-            'labels': labels.squeeze(0)
+            'patient_input_ids': patient_encodings['input_ids'].squeeze(0),
+            'patient_attention_mask': patient_encodings['attention_mask'].squeeze(0),
+            'patient_labels': patient_labels.squeeze(0),
+            'therapist_input_ids': response_encodings['input_ids'].squeeze(0),
+            'therapist_attention_mask': response_encodings['attention_mask'].squeeze(0),
+            'therapist_labels': response_labels.squeeze(0)
         }
 
 # Create train and test datasets using the class
@@ -78,7 +96,6 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
 # Print some examples
 print(chatbot_tokenizer.decode(train_dataset[0]['input_ids']))
-print(chatbot_tokenizer.decode(test_dataset[0]['input_ids']))
 
 # Load batches
 batch_size = 8
