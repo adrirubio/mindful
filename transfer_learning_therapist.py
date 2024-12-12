@@ -53,39 +53,24 @@ class TherapyDataset(Dataset):
         return len(self.dataset['Context'])
 
     def __getitem__(self, idx):
-        # Tokenize patient context separately
-        patient_context = self.dataset['Context'][idx]
-        patient_encodings = self.tokenizer(
-            patient_context, 
+        # Tokenize entire conversation
+        conversation = f"Patient: {self.dataset['Context'][idx]}\nTherapist: {self.dataset['Response'][idx]}"
+
+        # Tokenize the conversation
+        encodings = self.tokenizer(
+            conversation, 
             truncation=True,
             max_length=self.max_length,
             padding='max_length',
             return_tensors="pt"
         )
-
-        # Tokenize therapist response separately
-        therapist_response = self.dataset['Response'][idx]
-        response_encodings = self.tokenizer(
-            therapist_response, 
-            truncation=True,
-            max_length=self.max_length,
-            padding='max_length',
-            return_tensors="pt"
-        )
-
-        # Create labels for patient context (set pad tokens to -100)
-        patient_labels = patient_encodings['input_ids'].clone()
-        patient_labels[patient_labels == self.tokenizer.pad_token_id] = -100
-
-        # Create labels for therapist response (set pad tokens to -100)
-        response_labels = response_encodings['input_ids'].clone()
-        response_labels[response_labels == self.tokenizer.pad_token_id] = -100
 
         return {
             'input_ids': encodings['input_ids'].squeeze(0),
             'attention_mask': encodings['attention_mask'].squeeze(0),
             'labels': labels.squeeze(0)
         }
+
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
