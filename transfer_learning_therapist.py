@@ -53,17 +53,22 @@ class TherapyDataset(Dataset):
         return len(self.dataset['Context'])
 
     def __getitem__(self, idx):
-        # Tokenize entire conversation
-        conversation = f"Patient: {self.dataset['Context'][idx]}\nTherapist: {self.dataset['Response'][idx]}"
+        # Separate patient context and therapist response
+        patient_context = self.dataset['Context'][idx]
+        therapist_response = self.dataset['Response'][idx]
 
-        # Tokenize the conversation
+        # Tokenize the full text
         encodings = self.tokenizer(
-            conversation, 
+            patient_context,
             truncation=True,
             max_length=self.max_length,
             padding='max_length',
             return_tensors="pt"
         )
+
+        # Create labels (shifted input_ids)
+        labels = encodings['input_ids'].clone()
+        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
 
         return {
             'input_ids': encodings['input_ids'].squeeze(0),
