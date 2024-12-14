@@ -49,16 +49,16 @@ class TherapyDataset(Dataset):
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-    def __len__(self):
+    def __len__(self):  # Corrected from **len** to __len__
         return len(self.dataset['Context'])
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx):  # Corrected from **getitem** to __getitem__
         # Separate patient context and therapist response
         patient_context = self.dataset['Context'][idx]
         therapist_response = self.dataset['Response'][idx]
 
         # Tokenize the full text
-        encodings = self.tokenizer(
+        patient_encodings = self.tokenizer(
             patient_context,
             truncation=True,
             max_length=self.max_length,
@@ -66,8 +66,8 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        # Create labels (use the therapist response part for labels)
-        response_encodings = self.tokenizer(
+        # Tokenize the full text
+        therapist_encodings = self.tokenizer(
             therapist_response,
             truncation=True,
             max_length=self.max_length,
@@ -75,10 +75,14 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
+        # Create labels (shifted input_ids)
+        labels = therapist_encodings['input_ids'].clone()
+        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
+
         return {
-            'input_ids': encodings['input_ids'].squeeze(0),
-            'attention_mask': encodings['attention_mask'].squeeze(0),
-            'labels': response_encodings['labels'].squeeze(0)
+            'input_ids': patient_encodings['input_ids'].squeeze(0),
+            'attention_mask': patient_encodings['attention_mask'].squeeze(0),
+            'labels': labels.squeeze(0)
         }
 
 # Create train and test datasets using the class
