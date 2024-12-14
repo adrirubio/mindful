@@ -27,35 +27,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load the mental health dataset (train section)
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 
-class TherapyDataset(Dataset):
-    def __init__(self, dataset, tokenizer, max_length=512, train=True):
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        dataset = dataset.to_dict()
-        split = int(len(dataset["Context"]) * 0.9)
-
-        if train:
-            self.dataset = {
-                'Context': dataset["Context"][:split],
-                'Response': dataset["Response"][:split]
-            }
-        else:
-            self.dataset = {
-                'Context': dataset["Context"][split:],
-                'Response': dataset["Response"][split:]
-            }
-
-        # Set pad token if not already set
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-
-    def __len__(self):
-        return len(self.dataset['Context'])
-
     def __getitem__(self, idx):
-        # Separate patient context and therapist response
-        patient_context = self.dataset['Context'][idx]
-        therapist_response = self.dataset['Response'][idx]
+        # Ensure idx is within range
+        idx = idx % len(self.contexts)
+        
+        # Get specific context and response
+        patient_context = self.contexts[idx]
+        therapist_response = self.responses[idx]
 
         # Tokenize with return_tensors=None to get lists instead of tensors
         patient_encodings = self.tokenizer(
@@ -80,7 +58,7 @@ class TherapyDataset(Dataset):
 
         # Create labels with careful conversion
         labels = torch.tensor(therapist_encodings['input_ids'], dtype=torch.long)
-    
+        
         # Replace pad tokens with -100 for loss computation
         labels[labels == self.tokenizer.pad_token_id] = -100
 
@@ -94,13 +72,16 @@ class TherapyDataset(Dataset):
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
-# Print examples
+# Print patient context
 print("Patient Context:")
-print(chatbot_tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
+print(chatbot_tokenizer.decode(train_dataset[3]['input_ids'].tolist(), skip_special_tokens=True))
 
 # Print therapist response
 print("Therapist Response:")
-print(chatbot_tokenizer.decode(train_dataset[0]['labels'].tolist(), skip_special_tokens=True))
+# Filter out -100 values before decoding
+valid_labels = train_dataset[3]['labels']
+valid_labels = valid_labels[valid_labels != -100]
+print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
 # Load batches
 batch_size = 8
