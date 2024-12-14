@@ -58,7 +58,7 @@ class TherapyDataset(Dataset):
         therapist_response = self.dataset['Response'][idx]
 
         # Tokenize the full text
-        patient_encodings = self.tokenizer(
+        encodings = self.tokenizer(
             patient_context,
             truncation=True,
             max_length=self.max_length,
@@ -66,8 +66,8 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        # Tokenize the full text
-        therapist_encodings = self.tokenizer(
+        # Create labels (use the therapist response part for labels)
+        response_encodings = self.tokenizer(
             therapist_response,
             truncation=True,
             max_length=self.max_length,
@@ -75,16 +75,11 @@ class TherapyDataset(Dataset):
             return_tensors="pt"
         )
 
-        # Create labels (shifted input_ids)
-        labels = therapist_encodings['input_ids'].clone()
-        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
-
         return {
-            'input_ids': patient_encodings['input_ids'].squeeze(0),
-            'attention_mask': patient_encodings['attention_mask'].squeeze(0),
-            'labels': labels.squeeze(0)
+            'input_ids': encodings['input_ids'].squeeze(0),
+            'attention_mask': encodings['attention_mask'].squeeze(0),
+            'labels': response_encodings['labels'].squeeze(0)
         }
-
 
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
