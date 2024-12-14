@@ -74,12 +74,15 @@ class TherapyDataset(Dataset):
             return_tensors=None
         )
 
-        input_ids = torch.tensor(patient_encodings['input_ids'])
-        attention_mask = torch.tensor(patient_encodings['attention_mask'])
+        # Careful tensor conversion with explicit dtype
+        input_ids = torch.tensor(patient_encodings['input_ids'], dtype=torch.long)
+        attention_mask = torch.tensor(patient_encodings['attention_mask'], dtype=torch.long)
 
-        # Create labels (shifted input_ids)
-        labels = torch.tensor(therapist_encodings['input_ids'])
-        labels[labels == self.tokenizer.pad_token_id] = -100  # Ignore padding tokens in loss
+        # Create labels with careful conversion
+        labels = torch.tensor(therapist_encodings['input_ids'], dtype=torch.long)
+    
+        # Replace pad tokens with -100 for loss computation
+        labels[labels == self.tokenizer.pad_token_id] = -100
 
         return {
             'input_ids': input_ids,
