@@ -95,12 +95,12 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
 # Print patient context
 print("Patient Context:")
-print(chatbot_tokenizer.decode(train_dataset[3]['input_ids'].tolist(), skip_special_tokens=True))
+print(chatbot_tokenizer.decode(train_dataset[2]['input_ids'].tolist(), skip_special_tokens=True))
 
 # Print therapist response
 print("Therapist Response:")
 # Filter out -100 values before decoding
-valid_labels = train_dataset[3]['labels']
+valid_labels = train_dataset[2]['labels']
 valid_labels = valid_labels[valid_labels != -100]
 print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
