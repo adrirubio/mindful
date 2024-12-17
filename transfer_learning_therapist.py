@@ -114,8 +114,6 @@ test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 # Print patient context
 print("Patient Context:")
 print(chatbot_tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
-print(chatbot_tokenizer.decode(train_dataset[0]['labels'].tolist(), skip_special_tokens=True))
-
 
 # Print therapist response
 print("Therapist Response:")
