@@ -31,7 +31,7 @@ class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):
         # Convert dataset to dictionary
         dataset_dict = dataset.to_dict()
-        
+
         # Create a set of unique contexts to remove duplicates
         unique_contexts = list(set(dataset_dict["Context"]))
         unique_responses = []
@@ -107,22 +107,20 @@ class TherapyDataset(Dataset):
             'labels': labels
         }
 
-# After creating the dataset, add a debugging print to verify
-print("Unique contexts in train dataset:", len(train_dataset.dataset['Context']))
-
-
 # Create train and test datasets using the class
 train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
 
 # Print patient context
 print("Patient Context:")
-print(chatbot_tokenizer.decode(train_dataset[1]['input_ids'].tolist(), skip_special_tokens=True))
+print(chatbot_tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
+print(chatbot_tokenizer.decode(train_dataset[0]['labels'].tolist(), skip_special_tokens=True))
+
 
 # Print therapist response
 print("Therapist Response:")
 # Filter out -100 values before decoding
-valid_labels = train_dataset[1]['labels']
+valid_labels = train_dataset[0]['labels']
 valid_labels = valid_labels[valid_labels != -100]
 print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
