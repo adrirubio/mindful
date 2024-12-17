@@ -29,34 +29,56 @@ dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 
 class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        dataset = dataset.to_dict()
-        split = int(len(dataset["Context"]) * 0.9)
+        # Convert dataset to dictionary
+        dataset_dict = dataset.to_dict()
+        
+        # Create a set of unique contexts to remove duplicates
+        unique_contexts = list(set(dataset_dict["Context"]))
+        unique_responses = []
+
+        # Create a mapping of unique contexts to their first unique response
+        context_to_response = {}
+        for context, response in zip(dataset_dict["Context"], dataset_dict["Response"]):
+            if context not in context_to_response:
+                context_to_response[context] = response
+
+        # Convert back to lists
+        unique_contexts = list(context_to_response.keys())
+        unique_responses = list(context_to_response.values())
+
+        # Perform train/test split
+        split = int(len(unique_contexts) * 0.9)
 
         if train:
             self.dataset = {
-                'Context': dataset["Context"][:split],
-                'Response': dataset["Response"][:split]
+                'Context': unique_contexts[:split],
+                'Response': unique_responses[:split]
             }
         else:
             self.dataset = {
-                'Context': dataset["Context"][split:],
-                'Response': dataset["Response"][split:]
+                'Context': unique_contexts[split:],
+                'Response': unique_responses[split:]
             }
+
+        self.tokenizer = tokenizer
+        self.max_length = max_length
 
         # Set pad token if not already set
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
+        # Debug print
+        print(f"{'Train' if train else 'Test'} dataset size:", len(self.dataset['Context']))
+
     def __len__(self):
         return len(self.dataset['Context'])
+
     def __getitem__(self, idx):
-        # Separate patient context and therapist response
+        # Ensure the context and response for this specific index are used
         patient_context = self.dataset['Context'][idx]
         therapist_response = self.dataset['Response'][idx]
 
-        # Tokenize with return_tensors=None to get lists instead of tensors
+        # Tokenization remains the same
         patient_encodings = self.tokenizer(
             patient_context,
             truncation=True,
@@ -73,14 +95,10 @@ class TherapyDataset(Dataset):
             return_tensors=None
         )
 
-        # Careful tensor conversion with explicit dtype
         input_ids = torch.tensor(patient_encodings['input_ids'], dtype=torch.long)
         attention_mask = torch.tensor(patient_encodings['attention_mask'], dtype=torch.long)
 
-        # Create labels with careful conversion
         labels = torch.tensor(therapist_encodings['input_ids'], dtype=torch.long)
-
-        # Replace pad tokens with -100 for loss computation
         labels[labels == self.tokenizer.pad_token_id] = -100
 
         return {
@@ -89,6 +107,8 @@ class TherapyDataset(Dataset):
             'labels': labels
         }
 
+# After creating the dataset, add a debugging print to verify
+print("Unique contexts in train dataset:", len(train_dataset.dataset['Context']))
 
 
 # Create train and test datasets using the class
