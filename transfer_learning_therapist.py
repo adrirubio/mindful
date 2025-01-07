@@ -189,4 +189,10 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
             for batch in test_loader:
                 input_ids = batch['input_ids'].to(device)
                 attention_mask = batch['attention_mask'].to(device)
-                
+                labels = batch['labels'].to(device)
+
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=lables)
+                loss = outputs.loss
+                test_loss.append(loss.item())
+
+            test_losses[it] = np.mean(test_loss)
