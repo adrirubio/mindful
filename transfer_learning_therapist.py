@@ -167,7 +167,17 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
 
+            optimizer.zero_grad()
+
             # Forward pass
             outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-            loss = outputs.
+            loss = outputs.loss
+
+            # Backward pass
+            loss.backward()
+            optimizer.step()
+
+            train_loss.append(loss.item())
+
+        train_losses[it] = np.mean(train_loss)
 
