@@ -18,9 +18,9 @@ model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 # chatbot_model.load_state_dict(torch.load(chatbot_model_path)
 chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
 
-
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 # chatbot_model.to(device)
 # chatbot_model.train() # Set to training mode
 
@@ -122,6 +122,17 @@ valid_labels = train_dataset[0]['labels']
 valid_labels = valid_labels[valid_labels != -100]
 print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
+# Add these debug prints
+print(f"Total training batches: {len(train_loader)}")
+print(f"Total test batches: {len(test_loader)}")
+
+# Check first batch
+sample_batch = next(iter(train_loader))
+print(f"Batch shapes:")
+print(f"input_ids: {sample_batch['input_ids'].shape}")
+print(f"attention_mask: {sample_batch['attention_mask'].shape}")
+print(f"labels: {sample_batch['labels'].shape}")
+
 # Load batches
 batch_size = 8
 train_loader = torch.utils.data.DataLoader(
@@ -154,7 +165,7 @@ for param in model.lm_head.parameters():
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
 
 # Training loop
-def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
+def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device):
     train_losses = np.zeros(epochs)
     test_losses = np.zeros(epochs)
     for it in range(epochs):
@@ -191,8 +202,15 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
                 attention_mask = batch['attention_mask'].to(device)
                 labels = batch['labels'].to(device)
 
-                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=lables)
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
                 loss = outputs.loss
                 test_loss.append(loss.item())
 
             test_losses[it] = np.mean(test_loss)
+
+        print(f"Epoch {it+1} - Train Loss: {train_losses[it]:.4f} - Test Loss: {test_losses[it]:.4f} - Time: {datetime.now() - t0}")
+
+    return train_losses, test_losses
+
+# Run training loop
+train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=1)
