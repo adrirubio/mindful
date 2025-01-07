@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-### Temporary changes
+### temporary changes
 
 # Load chatbot tokenizer and model
 # chatbot_tokenizer_path = "facebook/opt-350m"
