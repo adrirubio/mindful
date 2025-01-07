@@ -178,6 +178,15 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
             optimizer.step()
 
             train_loss.append(loss.item())
-
+        
+        # Get train and test losses
         train_losses[it] = np.mean(train_loss)
 
+        # Test loop
+        test_loss = []
+        model.eval()
+        with torch.no_grad():
+            for batch in test_loader:
+                input_ids = batch['input_ids'].to(device)
+                attention_mask = batch['attention_mask'].to(device)
+                
