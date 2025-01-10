@@ -19,7 +19,7 @@ model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
 
 # Prepare model for training
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 model.to(device)
 # chatbot_model.to(device)
 # chatbot_model.train() # Set to training mode
@@ -122,17 +122,6 @@ valid_labels = train_dataset[0]['labels']
 valid_labels = valid_labels[valid_labels != -100]
 print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
-# Add these debug prints
-print(f"Total training batches: {len(train_loader)}")
-print(f"Total test batches: {len(test_loader)}")
-
-# Check first batch
-sample_batch = next(iter(train_loader))
-print(f"Batch shapes:")
-print(f"input_ids: {sample_batch['input_ids'].shape}")
-print(f"attention_mask: {sample_batch['attention_mask'].shape}")
-print(f"labels: {sample_batch['labels'].shape}")
-
 # Load batches
 batch_size = 8
 train_loader = torch.utils.data.DataLoader(
@@ -145,6 +134,17 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=batch_size,
     shuffle=True
 )
+
+# Add these debug prints
+print(f"Total training batches: {len(train_loader)}")
+print(f"Total test batches: {len(test_loader)}")
+
+# Check first batch
+sample_batch = next(iter(train_loader))
+print(f"Batch shapes:")
+print(f"input_ids: {sample_batch['input_ids'].shape}")
+print(f"attention_mask: {sample_batch['attention_mask'].shape}")
+print(f"labels: {sample_batch['labels'].shape}")
 
 # Unfreeze some layers
 for param in model.parameters():
