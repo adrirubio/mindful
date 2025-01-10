@@ -213,4 +213,4 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device)
     return train_losses, test_losses
 
 # Run training loop
-train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=1 # Test number of epochs)
+train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=1)
