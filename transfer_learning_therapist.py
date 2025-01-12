@@ -214,3 +214,48 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device)
 
 # Run training loop
 train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=1)
+
+# Plot losses
+plt.plot(train_losses, label='Train Loss')
+plt.plot(test_losses, label='Test Loss')
+plt.legend()
+plt.show()
+
+# Save model
+model.save_pretrained("transfer_learning_therapist.pth")
+# Save tokenizer for later use
+tokenizer.save_pretrained("transfer_learning_therapist_tokenizer")
+
+# Accuracy
+n_correct = 0
+n_total = 0
+for batch in test_loader:
+    input_ids, labels = batch
+    input_ids = input_ids.to(device)
+    labels = labels.to(device)
+
+    # Forward pass
+    outputs = model(input_ids=input_ids, labels=labels)
+
+    # Get predictions
+    _, predictions = torch.max(outputs, 1)
+
+    # Update counts
+    n_correct += (predictions == labels).sum().item()
+    n_total += labels.shape[0]
+
+print(f"Accuracy: {n_correct / n_total}")
+
+with torch.no_grad():
+    for batch in test_loader:
+        input_ids, labels = batch
+        input_ids = input_ids.to(device)
+        labels = labels.to(device)
+
+        outputs = model(input_ids=input_ids, labels=labels)
+        _, predictions = torch.max(outputs, 1)
+
+        n_correct += (predictions == labels).sum().item()
+        n_total += labels.shape[0]
+
+print(f'Accuracy: {n_correct / n_total}')
