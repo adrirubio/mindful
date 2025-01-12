@@ -163,7 +163,7 @@ plt.show()
 
 # Save model
 model_save_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
-torch.save(model.state.dict(), model_save_path)
+torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
 
 # Accuracy
@@ -176,9 +176,8 @@ for batch in train_loader:
 
     # Forward pass
     outputs = model(input_ids=input_ids, labels=labels)
-
-    # Get predictions
-    _, predictions = torch.max(outputs, 1)
+    logits = outputs.logits
+    _, predictions = torch.max(logits, dim=-1)
 
     # Update counts
     n_correct += (predictions == labels).sum().item()
@@ -195,9 +194,8 @@ for batch in test_loader:
 
     # Forward pass
     outputs = model(input_ids=input_ids, labels=labels)
-
-    # Get predictions
-    _, predictions = torch.max(outputs, 1)
+    logits = outputs.logits
+    _, predictions = torch.max(logits, dim=-1)
 
     # Update counts
     n_correct += (predictions == labels).sum().item()
