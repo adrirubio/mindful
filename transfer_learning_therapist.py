@@ -15,14 +15,14 @@ from datetime import datetime
 # chatbot_model_path = "transfer_learning_chatbot.pth"
 # chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
-# chatbot_model.load_state_dict(torch.load(chatbot_model_path)
+# model = model.load_state_dict(torch.load(chatbot_model_path)
 chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
 # Prepare model for training
 device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
 model.to(device)
-# chatbot_model.to(device)
-# chatbot_model.train() # Set to training mode
+# model.to(device)
+# model.train() # Set to training mode
 
 # Load the mental health dataset (train section)
 dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
