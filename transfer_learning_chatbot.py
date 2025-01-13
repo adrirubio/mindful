@@ -44,7 +44,12 @@ class DailyDialogDataset(Dataset):
         encoded = self.tokenizer(dialogue, truncation=True, padding="max_length", max_length=self.max_length, return_tensors='pt')
         input_ids = encoded["input_ids"].squeeze()
         attention_mask = encoded["attention_mask"].squeeze()
-        return input_ids, input_ids  # Returning input_ids as both input and target
+        # Should return dictionary with attention_mask
+        return {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": input_ids  # For causal LM, labels are typically shifted input_ids
+        }
 
 # Create train and test datasets instances
 train_dataset = DailyDialogDataset(train_dialog, tokenizer)
@@ -93,15 +98,19 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         model.train()
         for batch in train_loader:
             # Get batch data
-            input_ids, labels = batch
-            input_ids = input_ids.to(device)
-            labels = labels.to(device)
+            input_ids = batch["input_ids"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+            labels = batch["labels"].to(device)
 
             # Zero the parameter gradients
             optimizer.zero_grad()
 
             # Forward pass
-            outputs = model(input_ids=input_ids, labels=labels)
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=labels
+            )
             loss = outputs.loss
 
             # Backward pass
@@ -124,12 +133,12 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
         with torch.no_grad():
             for batch in test_loader:
                 # Get batch data
-                input_ids, labels = batch
-                input_ids = input_ids.to(device)
-                labels = labels.to(device)
+                input_ids = batch["input_ids"].to(device)
+                attention_mask = batch["attention_mask"].to(device)
+                labels = batch["labels"].to(device)
 
                 # Forward pass
-                outputs = model(input_ids=input_ids, labels=labels)
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
                 loss = outputs.loss
                 test_loss.append(loss.item())
 
@@ -170,9 +179,9 @@ print(f"Model saved to {model_save_path}")
 n_correct = 0
 n_total = 0
 for batch in train_loader:
-    input_ids, labels = batch
-    input_ids = input_ids.to(device)
-    labels = labels.to(device)
+    input_ids = batch["input_ids"].to(device)
+    attention_mask = batch["attention_mask"].to(device)
+    labels = batch["labels"].to(device)
 
     # Forward pass
     outputs = model(input_ids=input_ids, labels=labels)
@@ -188,12 +197,12 @@ train_acc = n_correct / n_total
 n_correct = 0
 n_total = 0
 for batch in test_loader:
-    input_ids, labels = batch
-    input_ids = input_ids.to(device)
-    labels = labels.to(device)
+    input_ids = batch["input_ids"].to(device)
+    attention_mask = batch["attention_mask"].to(device)
+    labels = batch["labels"].to(device)
 
     # Forward pass
-    outputs = model(input_ids=input_ids, labels=labels)
+    outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
     logits = outputs.logits
     _, predictions = torch.max(logits, dim=-1)
 
