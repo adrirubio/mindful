@@ -12,7 +12,7 @@ from datetime import datetime
 
 # Load chatbot tokenizer and model
 # chatbot_tokenizer_path = "facebook/opt-350m"
-# chatbot_model_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
+# chatbot_model_path = "transfer_learning_chatbot.pth"
 # chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 # chatbot_model.load_state_dict(torch.load(chatbot_model_path)
@@ -123,7 +123,7 @@ valid_labels = valid_labels[valid_labels != -100]
 print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
 # Load batches
-batch_size = 8
+batch_size = 32
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=batch_size,

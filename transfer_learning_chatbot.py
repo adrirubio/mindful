@@ -56,7 +56,7 @@ train_dataset = DailyDialogDataset(train_dialog, tokenizer)
 test_dataset = DailyDialogDataset(test_dialog, tokenizer)
 
 # Create batches for improved computational efficiency
-batch_size = 8
+batch_size = 32
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=batch_size,
