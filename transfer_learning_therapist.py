@@ -11,12 +11,12 @@ from datetime import datetime
 ### temporary changes
 
 # Load chatbot tokenizer and model
-# chatbot_tokenizer_path = "facebook/opt-350m"
+# chatbot_tokenizer_path = "facebook/opt-2.7b"
 # chatbot_model_path = "transfer_learning_chatbot.pth"
 # chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
-model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
+model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 # chatbot_model.load_state_dict(torch.load(chatbot_model_path)
-chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
+chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
 # Prepare model for training
 device = torch.device("cpu" if torch.cuda.is_available() else "cpu")

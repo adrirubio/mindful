@@ -8,6 +8,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
+# Load the dataset
+dataset = load_dataset("daily_dialog")
+
+# Access the dialog sections
+train_dialog = dataset["train"]["dialog"]
+test_dialog = dataset["test"]["dialog"]
+
 # Load model and tokenizer
 model_name = "facebook/opt-2.7b"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
