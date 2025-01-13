@@ -162,7 +162,7 @@ plt.legend()
 plt.show()
 
 # Save model
-model_save_path = "/home/adrian/Documents/Perceptron/model_weights/transfer_learning_chatbot.pth"
+model_save_path = "transfer_learning_chatbot.pth"
 torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
 
