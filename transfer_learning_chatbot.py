@@ -8,13 +8,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Load DailyDialog dataset
-dataset = load_dataset("daily_dialog")
-
-# Load the pre trained OpenAssistant model and tokenizer
-model_name = "facebook/opt-350m"
+# Load model and tokenizer
+model_name = "facebook/opt-2.7b"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    device_map="auto",
+    torch_dtype=torch.float16,  # Use half precision
+    use_cache=False  # Disable KV cache during training
+)
+tokenizer.pad_token = tokenizer.eos_token
 
 # Define a sample user input
 user_input = "Hello! How are you?"
@@ -56,7 +59,7 @@ train_dataset = DailyDialogDataset(train_dialog, tokenizer)
 test_dataset = DailyDialogDataset(test_dialog, tokenizer)
 
 # Create batches for improved computational efficiency
-batch_size = 32
+batch_size = 6
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=batch_size,
@@ -86,7 +89,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # Define the optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
+optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=0.01)
 
 # Training loop
 def batch_gd(model, optimizer, train_loader, test_loader, epochs, device):
