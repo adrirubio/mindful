@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-### temporary changes
+### Temporary changes
 
 # Load chatbot tokenizer and model
 # chatbot_tokenizer_path = "facebook/opt-2.7b"
@@ -189,7 +189,7 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device)
             optimizer.step()
 
             train_loss.append(loss.item())
-        
+
         # Get train and test losses
         train_losses[it] = np.mean(train_loss)
 
