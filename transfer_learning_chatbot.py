@@ -1,10 +1,9 @@
 import torch.nn as nn
-torch.cuda.empty_cache()
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 from datetime import datetime
 
