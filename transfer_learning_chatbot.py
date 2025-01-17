@@ -21,7 +21,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map="auto",
     torch_dtype=torch.float16,  # Use half precision
-    use_cache=False  # Disable KV cache during training
+    use_cache=False
 )
 tokenizer.pad_token = tokenizer.eos_token
 
