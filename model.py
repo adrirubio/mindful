@@ -31,7 +31,11 @@ with torch.no_grad():
 
 # Decode the response
 response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-response = response.encode('utf-8').decode('unicode_escape')
+# response = response.encode('utf-8').decode('unicode_escape')
 
 print("Therapist:", response)
 
+# Print the important message at the end
+print("""IMPORTANT: I am an AI project created to demonstrate therapeutic conversation patterns and am not a licensed mental health professional. If you're struggling with any emotional, mental health, or personal challenges, please seek help from a qualified therapist. You can find licensed therapists at BetterHelp.com.
+In crisis? Text HOME to 988 or call 988 to reach the Suicide and Crisis Lifeline 24/7.
+Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")
