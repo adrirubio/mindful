@@ -215,8 +215,8 @@ model_save_path = "transfer_learning_therapist.pth"
 torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
 
-tokenizer_save_path = "transfer_learning_tokenizer.pth"
-torch.save(tokenizer.state_dict(), tokenizer_save_path)
+tokenizer_save_path = "transfer_learning_tokenizer"
+tokenizer.save_pretrained(tokenizer_save_path)
 print(f"Tokenizer saved to {tokenizer_save_path}")
 
 # Accuracy
