@@ -1,5 +1,4 @@
 import torch
-torch.cuda.empty_cache()
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
