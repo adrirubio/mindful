@@ -1,4 +1,5 @@
 import torch.nn as nn
+torch.cuda.empty_cache()
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
