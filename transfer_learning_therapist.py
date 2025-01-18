@@ -10,13 +10,13 @@ from datetime import datetime
 
 ### Temporary changes
 
-# Load chatbot tokenizer and model
-# chatbot_tokenizer_path = "facebook/opt-2.7b"
-# chatbot_model_path = "transfer_learning_chatbot.pth"
-# chatbot_tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
+# Load tokenizer and model
+# tokenizer_path = "facebook/opt-2.7b"
+# model_path = "transfer_learning_chatbot.pth"
+# tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 # model = model.load_state_dict(torch.load(chatbot_model_path)
-chatbot_tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
+tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
 # Prepare model for training
 device = torch.device("cpu" if torch.cuda.is_available() else "cpu")
@@ -108,19 +108,19 @@ class TherapyDataset(Dataset):
         }
 
 # Create train and test datasets
-train_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=True)
-test_dataset = TherapyDataset(dataset, chatbot_tokenizer, train=False)
+train_dataset = TherapyDataset(dataset, tokenizer, train=True)
+test_dataset = TherapyDataset(dataset, tokenizer, train=False)
 
 # Print patient context
 print("Patient Context:")
-print(chatbot_tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
+print(tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
 
 # Print therapist response
 print("Therapist Response:")
 # Filter out -100 values before decoding
 valid_labels = train_dataset[0]['labels']
 valid_labels = valid_labels[valid_labels != -100]
-print(chatbot_tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
+print(tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
 # Load batches
 batch_size = 32
@@ -134,17 +134,6 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=batch_size,
     shuffle=True
 )
-
-# Add these debug prints
-print(f"Total training batches: {len(train_loader)}")
-print(f"Total test batches: {len(test_loader)}")
-
-# Check first batch
-sample_batch = next(iter(train_loader))
-print(f"Batch shapes:")
-print(f"input_ids: {sample_batch['input_ids'].shape}")
-print(f"attention_mask: {sample_batch['attention_mask'].shape}")
-print(f"labels: {sample_batch['labels'].shape}")
 
 # Unfreeze some layers
 for param in model.parameters():
@@ -221,10 +210,14 @@ plt.plot(test_losses, label='Test Loss')
 plt.legend()
 plt.show()
 
-# Save model
-model.save_pretrained("transfer_learning_therapist.pth")
-# Save tokenizer for later use
-tokenizer.save_pretrained("transfer_learning_therapist_tokenizer")
+# Save model and tokenizer
+model_save_path = "transfer_learning_therapist.pth"
+torch.save(model.state_dict(), model_save_path)
+print(f"Model saved to {model_save_path}")
+
+tokenizer_save_path = "transfer_learning_tokenizer.pth"
+torch.save(tokenizer.state_dict(), tokenizer_save_path)
+print(f"Tokenizer saved to {tokenizer_save_path}")
 
 # Accuracy
 n_correct = 0
