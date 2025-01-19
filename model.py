@@ -7,7 +7,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
-# Load the trained weights
+# Load the model weights
 model.load_state_dict(torch.load("transfer_learning_therapist.pth", map_location=torch.device('cpu')))
 model.eval()
 
