@@ -1,4 +1,4 @@
- # Mindful
+ # mindful
 <img src="https://github.com/user-attachments/assets/24b7e101-6334-4f8c-b0ad-6e90453d453b" alt="Mindful" width="350">
  
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/adrirubio/Mindful)
