@@ -13,8 +13,8 @@ from datetime import datetime
 # tokenizer_path = "facebook/opt-2.7b"
 # model_path = "transfer_learning_chatbot.pth"
 # tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
-model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 # model = model.load_state_dict(torch.load(chatbot_model_path)
+model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
 # Prepare model for training
