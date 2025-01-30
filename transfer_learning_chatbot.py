@@ -25,10 +25,16 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 tokenizer.pad_token = tokenizer.eos_token
 
+# Move model to GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
 # Define a sample user input
 user_input = "Hello! How are you?"
-input_ids = tokenizer.encode(user_input, return_tensors="pt")
-output = model.generate(input_ids, max_length=40, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
+input_ids = tokenizer.encode(user_input, return_tensors="pt").to(device)
+attention_mask = torch.ones(input_ids.shape, device=device)
+
+output = model.generate(input_ids, attention_mask=attention_mask, max_length=40, num_return_sequences=1, pad_token_id=tokenizer.eos_token_id)
 response = tokenizer.decode(output[0], skip_special_tokens=True)
 print(response)
 
@@ -89,10 +95,6 @@ for param in model.model.decoder.embed_positions.parameters():
 for layer in model.model.decoder.layers[-4:]:
     for param in layer.parameters():
         param.requires_grad = True
-
-# Move model to GPU if available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
 
 # Define the optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=0.01)
