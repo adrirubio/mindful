@@ -1,3 +1,5 @@
+trust_remote_code=True
+
 import torch.nn as nn
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
