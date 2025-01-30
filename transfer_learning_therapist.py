@@ -199,7 +199,7 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device)
     return train_losses, test_losses
 
 # Run training loop
-train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=1)
+train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=10)
 
 # Plot losses
 plt.plot(train_losses, label='Train Loss')
@@ -211,10 +211,6 @@ plt.show()
 model_save_path = "transfer_learning_therapist.pth"
 torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
-
-tokenizer_save_path = "transfer_learning_tokenizer"
-tokenizer.save_pretrained(tokenizer_save_path)
-print(f"Tokenizer saved to {tokenizer_save_path}")
 
 # Accuracy
 n_correct = 0
