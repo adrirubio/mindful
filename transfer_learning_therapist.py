@@ -16,7 +16,7 @@ tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained(tokenizer_path)  # Instantiate the model
 
 # Load the model's state dictionary
-model.load_state_dict(torch.load(model_path))  # Now this will work correctly
+model.load_state_dict(torch.load(model_path))
 
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -121,7 +121,7 @@ valid_labels = valid_labels[valid_labels != -100]
 print(tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
 # Load batches
-batch_size = 32
+batch_size = 8
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=batch_size,
