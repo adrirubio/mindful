@@ -10,8 +10,13 @@ from datetime import datetime
 # Load tokenizer and model
 tokenizer_path = "facebook/opt-2.7b"
 model_path = "transfer_learning_chatbot.pth"
-tokenizer = AutoTokenizer.from_pretrained(chatbot_tokenizer_path)
-model = model.load_state_dict(torch.load(chatbot_model_path)
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+
+# Create an instance of the model
+model = AutoModelForCausalLM.from_pretrained(tokenizer_path)  # Instantiate the model
+
+# Load the model's state dictionary
+model.load_state_dict(torch.load(model_path))  # Now this will work correctly
 
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
