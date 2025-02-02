@@ -4,7 +4,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load the model and tokenizer
-model_path = "transfer_learning_therapist.pth"
+model_path = "/home/adrian/Documents/model_weights/ai_therapist/transfer_learning_therapist.pth"
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
 
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b")

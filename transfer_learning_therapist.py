@@ -9,7 +9,7 @@ from datetime import datetime
 
 # Load tokenizer and model
 tokenizer_path = "facebook/opt-2.7b"
-model_path = "transfer_learning_chatbot.pth"
+model_path = "/home/adrian/Documents/model_weights/ai_therapist/transfer_learning_chatbot.pth"
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
 # Create an instance of the model
@@ -209,7 +209,7 @@ plt.legend()
 plt.show()
 
 # Save model and tokenizer
-model_save_path = "transfer_learning_therapist.pth"
+model_save_path = "/home/adrian/Documents/model_weights/ai_therapist/transfer_learning_therapist.pth"
 torch.save(model.state_dict(), model_save_path)
 print(f"Model saved to {model_save_path}")
 
