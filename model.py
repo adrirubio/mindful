@@ -2,6 +2,9 @@
 import torch.nn as nn
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from huggingface_hub import login
+
+login(token="Token")
 
 # Load the model and tokenizer
 model_path = "/home/adrian/Documents/model_weights/ai_therapist/transfer_learning_therapist.pth"
