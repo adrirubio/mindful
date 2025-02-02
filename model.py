@@ -5,9 +5,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load the model and tokenizer
 model_path = "transfer_learning_therapist.pth"
-tokenizer = AutoTokenizer.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
 
-model = AutoModelForCausalLM.from_pretrained("TinyLlama/TinyLlama-1.1B-Chat-v1.0")
+model = AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b")
 
 # Load the model weights
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
