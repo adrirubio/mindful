@@ -5,13 +5,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load the model and tokenizer
 model_path = "transfer_learning_therapist.pth"
-tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")
+tokenizer = AutoTokenizer.from_pretrained("facebook/opt-2.7b")
 
-# Load model
-model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
+model = AutoModelForCausalLM.from_pretrained("facebook/opt-2.7b")
 
 # Load the model weights
-model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))  # Load weights
+model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval()
 
 print("Hi there. What brings you here today?")
