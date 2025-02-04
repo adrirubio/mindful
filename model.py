@@ -4,8 +4,6 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from huggingface_hub import login
 
-login(token="Token1")
-
 # Load the model and tokenizer
 model_path = "/home/adrian/Documents/model-weights/ai-herapist/transfer_learning_therapist.pth"
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
