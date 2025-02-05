@@ -2,7 +2,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from transformers import OPTForCausalLM, AutoTokenizer, GPT2Config
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from huggingface_hub import login
 
 # Load the model and tokenizer
@@ -10,8 +10,6 @@ model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learnin
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
 
 # Initialize the model
-config = GPT2Config.from_pretrained("facebook/opt-1.3b")
-model = OPTForCausalLM(config)
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval()
 
