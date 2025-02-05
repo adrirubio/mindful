@@ -5,13 +5,17 @@ import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from huggingface_hub import login
 
-# Load the model and tokenizer
+# Load tokenizer
+tokenizer_path = "facebook/opt-2.7b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
-tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
-# Initialize the model
-model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
-model.eval()
+# Create model instance
+model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
+
+# Load the fine-tuned weights
+state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+model.load_state_dict(state_dict)
 
 print("Hi there. What brings you here today?")
 patient_context = input(":")
