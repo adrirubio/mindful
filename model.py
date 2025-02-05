@@ -8,13 +8,12 @@ from huggingface_hub import login
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-1.3b")
 
+# Initialize the model
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-1.3b")
 
-# Load the model weights
+# Load the state dict if saved as a state dict
 model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
 model.eval()
-
-print("Loading model from:", model_path)
 
 print("Hi there. What brings you here today?")
 patient_context = input(":")
