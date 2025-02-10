@@ -5,9 +5,11 @@ import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from huggingface_hub import login
 
-# Load tokenizer
-tokenizer_path = "facebook/opt-2.7b"
+# Load tokenizer and model for the smaller OPT version
+tokenizer_path = "facebook/opt-1.3b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
+
+# Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
 # Create model instance
