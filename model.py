@@ -14,7 +14,7 @@ tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
 
 # Load the fine-tuned weights
-state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+state_dict = torch.load(model_path, map_location=torch.device('cpu'), weights_only=True)
 model.load_state_dict(state_dict)
 
 print("Hi there. What brings you here today?")
