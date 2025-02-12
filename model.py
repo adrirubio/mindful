@@ -10,7 +10,8 @@ tokenizer_path = "facebook/opt-1.3b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
-# Create model instance
+# Create model and tokenizer instance
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
 
 # Load the fine-tuned weights
