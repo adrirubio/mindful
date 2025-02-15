@@ -8,7 +8,6 @@ from huggingface_hub import login
 # Load tokenizer and model
 tokenizer_path = "facebook/opt-2.7b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
-tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
 # Create model and tokenizer instance
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
@@ -16,10 +15,21 @@ model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
 
 # Load the fine-tuned weights
 state_dict = torch.load(model_path, map_location=torch.device('cpu'))
-model.load_state_dict(state_dict)
+print("Keys in state dict:", state_dict.keys())
+
+# You might need to remove the 'module.' prefix if it exists
+if all(k.startswith('module.') for k in state_dict.keys()):
+    state_dict = {k[7:]: v for k, v in state_dict.items()}
+
+try:
+    model.load_state_dict(state_dict, strict=True)
+except Exception as e:
+    print(f"Error loading state dict: {e}")
+
+model.eval()
 
 print("Hi there. What brings you here today?")
-patient_context = input(":")
+patient_context = input("-")
 
 # Tokenize the input
 patient_input = tokenizer(patient_context, return_tensors="pt")
