@@ -6,7 +6,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from huggingface_hub import login
 
 # Load tokenizer and model
-tokenizer_path = "facebook/opt-1.3b"
+tokenizer_path = "facebook/opt-2.7b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
