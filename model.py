@@ -15,17 +15,21 @@ model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
 
 # Load the fine-tuned weights
 state_dict = torch.load(model_path, map_location=torch.device('cpu'))
-print("Keys in state dict:", state_dict.keys())
 
-# You might need to remove the 'module.' prefix if it exists
-if all(k.startswith('module.') for k in state_dict.keys()):
-    state_dict = {k[7:]: v for k, v in state_dict.items()}
+# Validate weights before loading
+for key, tensor in state_dict.items():
+    # Check for NaN or inf values
+    if torch.isnan(tensor).any() or torch.isinf(tensor).any():
+        print(f"Found NaN or inf in {key}")
+        continue
+        
+    # Check for unusually large values
+    max_val = torch.max(torch.abs(tensor))
+    if max_val > 100:
+        print(f"Large values found in {key}: max abs value = {max_val}")
 
-try:
-    model.load_state_dict(state_dict, strict=True)
-except Exception as e:
-    print(f"Error loading state dict: {e}")
-
+# Load state dict
+model.load_state_dict(state_dict)
 model.eval()
 
 print("Hi there. What brings you here today?")
