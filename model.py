@@ -1,32 +1,57 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def load_model(model_path, tokenizer_path):
-    device = torch.device("cpu")
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
-    model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)
-    model.eval()
-    return model, tokenizer, device
+# Paths
+tokenizer_path = "facebook/opt-2.7b"
+model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_chatbot.pth"
 
-def generate_response(model, tokenizer, device, user_input, max_length=150):
-    input_ids = tokenizer.encode(user_input, return_tensors="pt").to(device)
+# Load tokenizer
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+
+# Set pad token
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+
+# Load model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = AutoModelForCausalLM.from_pretrained(tokenizer_path).to(device)
+
+# Load fine-tuned weights
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.eval()  # Set to evaluation mode
+
+def generate_response(model, tokenizer, input_text, device):
+    """Generate a response from the AI therapist."""
+    inputs = tokenizer(
+        input_text,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=512
+    ).to(device)
+
+    # Generate response with controlled randomness
     with torch.no_grad():
-        output = model.generate(input_ids, max_length=max_length, pad_token_id=tokenizer.eos_token_id)
-    response = tokenizer.decode(output[0], skip_special_tokens=True)
+        output = model.generate(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],  
+            max_length=150,        
+            temperature=0.9,       
+            top_p=0.85,            
+            repetition_penalty=1.2, 
+            do_sample=True         
+        )
+
+    # Decode response
+    response = tokenizer.decode(output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
     return response
 
-if __name__ == "__main__":
-    model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
-    tokenizer_path = "facebook/opt-2.7b"
-    
-    model, tokenizer, device = load_model(model_path, tokenizer_path)
-    
-    print("AI Therapist is ready. Type 'exit' to end the session.")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == "exit":
-            break
-        response = generate_response(model, tokenizer, device, user_input)
-        print(f"Therapist: {response}")
+# Chat loop
+print("AI Therapist is ready.")
+user_input = input("You: ")
+response = generate_response(model, tokenizer, user_input, device)
+print(f"Therapist: {response}")
+
+# Print disclamer at the end
+print("""IMPORTANT: I am an AI project created to demonstrate therapeutic conversation patterns and am not a licensed mental health professional. If you're struggling with any emotional, mental health, or personal challenges, please seek help from a qualified therapist. You can find licensed therapists at BetterHelp.com.
+Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")
