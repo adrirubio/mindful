@@ -121,7 +121,7 @@ valid_labels = valid_labels[valid_labels != -100]
 print(tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
 # Load batches
-batch_size = 8
+batch_size = 4
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=batch_size,
@@ -141,15 +141,15 @@ for param in model.model.decoder.embed_tokens.parameters():
 for param in model.model.decoder.embed_positions.parameters():
     param.requires_grad = True
 
-for layer in model.model.decoder.layers[-4:]:
+for layer in model.model.decoder.layers[-2:]:
     for param in layer.parameters():
         param.requires_grad = True
 
 for param in model.lm_head.parameters():
     param.requires_grad = True
 
-# Define the optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=0.01)
+# Define the optimizer with a lower learning rate
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=0.01)
 
 # Training loop
 def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device):
@@ -173,6 +173,10 @@ def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device)
 
             # Backward pass
             loss.backward()
+            
+            # Gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+
             optimizer.step()
 
             train_loss.append(loss.item())
