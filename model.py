@@ -21,20 +21,27 @@ model.to(device)
 model.eval()
 
 def generate_response(model, tokenizer, user_input, device):
-    inputs = tokenizer(user_input, return_tensors="pt", padding=True, truncation=True).to(device)
+    inputs = tokenizer(
+        user_input, 
+        return_tensors="pt", 
+        padding=True, 
+        truncation=True, 
+        max_length=200  # Keep responses short
+    ).to(device)
 
     with torch.no_grad():
         output = model.generate(
             **inputs,
-            max_length=200,  # Adjust as needed
-            num_beams=5,  # Beam search for better responses
-            do_sample=False,  # No randomness
+            max_length=200,  
+            num_beams=3,  # Balance quality and variety
+            do_sample=False,  
+            repetition_penalty=1.3,  # Stronger penalty for repeats
+            no_repeat_ngram_size=3,  # Prevents repeating phrases
             early_stopping=True
         )
 
     response = tokenizer.decode(output[0], skip_special_tokens=True)
     return response
-
 # Chat loop
 print("AI Therapist is ready.")
 user_input = input("- ")
