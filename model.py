@@ -1,6 +1,8 @@
 # Inference code
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-2.7b"
@@ -21,27 +23,36 @@ model.to(device)
 model.eval()
 
 def generate_response(model, tokenizer, user_input, device):
+    prompt_template = f"You: {user_input}\nTherapist:"
+    
     inputs = tokenizer(
-        user_input, 
+        prompt_template, 
         return_tensors="pt", 
         padding=True, 
         truncation=True, 
-        max_length=200  # Keep responses short
+        max_length=256  
     ).to(device)
 
     with torch.no_grad():
         output = model.generate(
             **inputs,
-            max_length=200,  
-            num_beams=3,  # Balance quality and variety
-            do_sample=False,  
-            repetition_penalty=1.3,  # Stronger penalty for repeats
-            no_repeat_ngram_size=3,  # Prevents repeating phrases
+            max_length=256,
+            num_beams=5,  
+            do_sample=True,  
+            temperature=0.7,  
+            top_k=50,  
+            top_p=0.9,  
+            repetition_penalty=1.5,  
+            no_repeat_ngram_size=4,  
             early_stopping=True
         )
 
     response = tokenizer.decode(output[0], skip_special_tokens=True)
+
+    # Post-process output to remove unnecessary duplication
+    response = response.replace(prompt_template, "").strip()
     return response
+
 # Chat loop
 print("AI Therapist is ready.")
 user_input = input("- ")
