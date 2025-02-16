@@ -36,9 +36,9 @@ def generate_response(model, tokenizer, input_text, device):
             input_ids=inputs["input_ids"],
             attention_mask=inputs["attention_mask"],
             max_length=150,
-            temperature=0.7,       # Lowered for stability
-            top_p=0.9,             # Nucleus sampling
-            repetition_penalty=1.2, # Penalize repetition
+            temperature=0.7,       
+            top_p=0.9,             
+            repetition_penalty=1.2, 
             do_sample=True
         )
 
