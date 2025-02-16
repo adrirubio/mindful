@@ -1,22 +1,39 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel, AutoConfig
 from datasets import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+from torch.cuda.amp import autocast, GradScaler
+
+# Check device
+if torch.cuda.is_available():
+    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+else:
+    print("Using CPU")
 
 # Load tokenizer and model
 tokenizer_path = "facebook/opt-2.7b"
 model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_chatbot.pth"
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
-# Create an instance of the model
-model = AutoModelForCausalLM.from_pretrained(tokenizer_path)  # Instantiate the model
+# Create an instance of the model with gradient checkpointing
+model = AutoModelForCausalLM.from_pretrained(
+    tokenizer_path,
+    use_cache=False,  # Disable KV cache for training
+    gradient_checkpointing=True
+)
 
-# Load the model's state dictionary
-model.load_state_dict(torch.load(model_path))
+# Load previous weights
+try:
+    state_dict = torch.load(model_path)
+    model.load_state_dict(state_dict)
+    print("Successfully loaded previous weights")
+except Exception as e:
+    print(f"Error loading weights: {e}")
+    print("Starting with fresh model")
 
 # Prepare model for training
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -120,133 +137,180 @@ valid_labels = train_dataset[0]['labels']
 valid_labels = valid_labels[valid_labels != -100]
 print(tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
 
-# Load batches
+# Small batch size and gradient accumulation
 batch_size = 4
-train_loader = torch.utils.data.DataLoader(
+grad_accumulation_steps = 4
+train_loader = DataLoader(
     train_dataset,
     batch_size=batch_size,
-    shuffle=True
+    shuffle=True,
+    num_workers=2,
+    pin_memory=True
 )
-test_loader = torch.utils.data.DataLoader(
+test_loader = DataLoader(
     test_dataset,
     batch_size=batch_size,
-    shuffle=True
+    shuffle=False,
+    num_workers=2,
+    pin_memory=True
 )
 
-# Unfreeze some layers
+# Layer unfreezing with proper initialization
 for param in model.parameters():
     param.requires_grad = False
-for param in model.model.decoder.embed_tokens.parameters():
-    param.requires_grad = True
-for param in model.model.decoder.embed_positions.parameters():
-    param.requires_grad = True
 
-for layer in model.model.decoder.layers[-2:]:
+# Unfreeze only last few layers
+trainable_layers = [
+    model.model.decoder.embed_tokens,
+    model.model.decoder.embed_positions,
+    *model.model.decoder.layers[-2:],  # Only last 2 layers instead of 4
+    model.lm_head
+]
+
+for layer in trainable_layers:
     for param in layer.parameters():
         param.requires_grad = True
 
-for param in model.lm_head.parameters():
-    param.requires_grad = True
+# Optimizer with lower learning rate and proper weight decay
+optimizer = torch.optim.AdamW(
+    [p for p in model.parameters() if p.requires_grad],
+    lr=5e-6,  # Lower learning rate
+    weight_decay=0.01,
+    eps=1e-8,  # Increased epsilon for stability
+    betas=(0.9, 0.999)
+)
 
-# Define the optimizer with a lower learning rate
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=0.01)
+# Add learning rate scheduler
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    optimizer,
+    T_max=10,  # Number of epochs
+    eta_min=1e-6
+)
 
-# Training loop
-def batch_gd(model, optimizer, train_loader, test_loader, epochs, device=device):
-    train_losses = np.zeros(epochs)
-    test_losses = np.zeros(epochs)
-    for it in range(epochs):
-        t0 = datetime.now()
-        train_loss = []
-        model.train()
-        for batch in train_loader:
-            # Get batch data
+def train_epoch(model, optimizer, train_loader, device, grad_accumulation_steps):
+    model.train()
+    total_loss = 0
+    acc_loss = 0
+    optimizer.zero_grad()
+    
+    for i, batch in enumerate(train_loader):
+        try:
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
 
-            optimizer.zero_grad()
-
             # Forward pass
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-            loss = outputs.loss
-
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=labels
+            )
+            
+            # Loss scaling
+            loss = outputs.loss / grad_accumulation_steps
+            
+            # Check for NaN/inf in loss
+            if torch.isnan(loss) or torch.isinf(loss):
+                print(f"NaN/Inf detected in loss at batch {i}")
+                continue
+                
             # Backward pass
             loss.backward()
             
             # Gradient clipping
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(),
+                max_norm=1.0
+            )
+            
+            # Gradient accumulation
+            if (i + 1) % grad_accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
+            
+            acc_loss += loss.item() * grad_accumulation_steps
+            
+            if (i + 1) % 100 == 0:
+                print(f"Batch {i+1}, Current loss: {acc_loss/(i+1)}")
+                
+        except RuntimeError as e:
+            print(f"Error in batch {i}: {e}")
+            optimizer.zero_grad()
+            continue
+            
+    return acc_loss / len(train_loader)
 
-            optimizer.step()
-
-            train_loss.append(loss.item())
-
-        # Get train and test losses
-        train_losses[it] = np.mean(train_loss)
-
-        # Test loop
-        test_loss = []
+# Modified training loop
+def train_model(model, optimizer, scheduler, train_loader, test_loader, epochs, device):
+    train_losses = []
+    test_losses = []
+    
+    for epoch in range(epochs):
+        print(f"\nEpoch {epoch+1}/{epochs}")
+        
+        # Training
+        train_loss = train_epoch(
+            model,
+            optimizer,
+            train_loader,
+            device,
+            grad_accumulation_steps
+        )
+        
+        # Validation
         model.eval()
+        test_loss = 0
         with torch.no_grad():
             for batch in test_loader:
                 input_ids = batch['input_ids'].to(device)
                 attention_mask = batch['attention_mask'].to(device)
                 labels = batch['labels'].to(device)
-
-                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-                loss = outputs.loss
-                test_loss.append(loss.item())
-
-            test_losses[it] = np.mean(test_loss)
-
-        print(f"Epoch {it+1} - Train Loss: {train_losses[it]:.4f} - Test Loss: {test_losses[it]:.4f} - Time: {datetime.now() - t0}")
-
+                
+                outputs = model(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    labels=labels
+                )
+                test_loss += outputs.loss.item()
+        
+        test_loss /= len(test_loader)
+        
+        # Update learning rate
+        scheduler.step()
+        
+        # Save checkpoint
+        if (epoch + 1) % 2 == 0:
+            checkpoint = {
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'train_loss': train_loss,
+                'test_loss': test_loss
+            }
+            torch.save(
+                checkpoint,
+                f"/home/adrian/Documents/model-weights/ai-therapist/checkpoint_epoch_{epoch+1}.pth"
+            )
+        
+        print(f"Epoch {epoch+1}: Train Loss = {train_loss:.4f}, Test Loss = {test_loss:.4f}")
+        train_losses.append(train_loss)
+        test_losses.append(test_loss)
+    
     return train_losses, test_losses
 
-# Run training loop
-train_losses, test_losses = batch_gd(model, optimizer, train_loader, test_loader, epochs=10)
+# Train the model
+train_losses, test_losses = train_model(
+    model,
+    optimizer,
+    scheduler,
+    train_loader,
+    test_loader,
+    epochs=10,
+    device=device
+)
 
-# Plot losses
-plt.plot(train_losses, label='Train Loss')
-plt.plot(test_losses, label='Test Loss')
-plt.legend()
-plt.show()
-
-# Save model and tokenizer
-model_save_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
-torch.save(model.state_dict(), model_save_path)
-print(f"Model saved to {model_save_path}")
-
-# Accuracy
-n_correct = 0
-n_total = 0
-for batch in test_loader:
-    input_ids, labels = batch
-    input_ids = input_ids.to(device)
-    labels = labels.to(device)
-
-    # Forward pass
-    outputs = model(input_ids=input_ids, labels=labels)
-
-    # Get predictions
-    _, predictions = torch.max(outputs, 1)
-
-    # Update counts
-    n_correct += (predictions == labels).sum().item()
-    n_total += labels.shape[0]
-
-print(f"Accuracy: {n_correct / n_total}")
-
-with torch.no_grad():
-    for batch in test_loader:
-        input_ids, labels = batch
-        input_ids = input_ids.to(device)
-        labels = labels.to(device)
-
-        outputs = model(input_ids=input_ids, labels=labels)
-        _, predictions = torch.max(outputs, 1)
-
-        n_correct += (predictions == labels).sum().item()
-        n_total += labels.shape[0]
-
-print(f'Accuracy: {n_correct / n_total}')
+# Save final model
+torch.save(
+    model.state_dict(),
+    "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist_final.pth"
+)
