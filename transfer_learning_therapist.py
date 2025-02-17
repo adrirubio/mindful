@@ -6,12 +6,9 @@ from datasets import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
+
 # Check device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-if torch.cuda.is_available():
-    print(f"Using GPU: {torch.cuda.get_device_name(0)}")
-else:
-    print("Using CPU")
 
 # Load tokenizer and model
 tokenizer_path = "facebook/opt-2.7b"
