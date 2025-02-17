@@ -159,7 +159,7 @@ for layer in trainable_layers:
 # Optimizer with learning rate scheduling
 optimizer = torch.optim.AdamW(
     [p for p in model.parameters() if p.requires_grad],
-    lr=le-6,
+    lr=5e-6,
     weight_decay=0.01,
     eps=1e-8,
     betas=(0.9, 0.999)
@@ -288,5 +288,5 @@ plt.show()
 # Save final model
 torch.save(
     model.state_dict(),
-    "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist_final.pth"
+    "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
 )
