@@ -1,14 +1,13 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel, AutoConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 from datasets import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
-from torch.cuda.amp import autocast, GradScaler
-
 # Check device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if torch.cuda.is_available():
     print(f"Using GPU: {torch.cuda.get_device_name(0)}")
 else:
@@ -20,23 +19,25 @@ model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learnin
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 
 # Create an instance of the model with gradient checkpointing
+config = AutoConfig.from_pretrained(tokenizer_path)
+config.use_cache = False  # Disable KV cache for training
+config.gradient_checkpointing = True
+
 model = AutoModelForCausalLM.from_pretrained(
     tokenizer_path,
-    use_cache=False,  # Disable KV cache for training
-    gradient_checkpointing=True
+    config=config
 )
 
 # Load previous weights
 try:
-    state_dict = torch.load(model_path)
+    state_dict = torch.load(model_path, map_location=device)
     model.load_state_dict(state_dict)
     print("Successfully loaded previous weights")
 except Exception as e:
     print(f"Error loading weights: {e}")
     print("Starting with fresh model")
 
-# Prepare model for training
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Move model to device
 model.to(device)
 
 # Load the mental health dataset (train section)
@@ -44,37 +45,6 @@ dataset = load_dataset("Amod/mental_health_counseling_conversations")["train"]
 
 class TherapyDataset(Dataset):
     def __init__(self, dataset, tokenizer, max_length=512, train=True):
-        # Convert dataset to dictionary
-        dataset_dict = dataset.to_dict()
-
-        # Create a set of unique contexts to remove duplicates
-        unique_contexts = list(set(dataset_dict["Context"]))
-        unique_responses = []
-
-        # Create a mapping of unique contexts to their first unique response
-        context_to_response = {}
-        for context, response in zip(dataset_dict["Context"], dataset_dict["Response"]):
-            if context not in context_to_response:
-                context_to_response[context] = response
-
-        # Convert back to lists
-        unique_contexts = list(context_to_response.keys())
-        unique_responses = list(context_to_response.values())
-
-        # Perform train/test split
-        split = int(len(unique_contexts) * 0.9)
-
-        if train:
-            self.dataset = {
-                'Context': unique_contexts[:split],
-                'Response': unique_responses[:split]
-            }
-        else:
-            self.dataset = {
-                'Context': unique_contexts[split:],
-                'Response': unique_responses[split:]
-            }
-
         self.tokenizer = tokenizer
         self.max_length = max_length
 
@@ -82,38 +52,62 @@ class TherapyDataset(Dataset):
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        # Debug print
-        print(f"{'Train' if train else 'Test'} dataset size:", len(self.dataset['Context']))
+        # Convert dataset to dictionary
+        dataset_dict = dataset.to_dict()
+        
+        # Create list of unique conversation pairs
+        unique_pairs = {}
+        for context, response in zip(dataset_dict["Context"], dataset_dict["Response"]):
+            if context not in unique_pairs:  # Only take first response for each context
+                unique_pairs[context] = response
+
+        # Convert to lists and sort for deterministic behavior
+        contexts = sorted(list(unique_pairs.keys()))
+        responses = [unique_pairs[context] for context in contexts]
+
+        # Perform train/test split
+        split_idx = int(len(contexts) * 0.9)
+        
+        if train:
+            self.contexts = contexts[:split_idx]
+            self.responses = responses[:split_idx]
+        else:
+            self.contexts = contexts[split_idx:]
+            self.responses = responses[split_idx:]
+
+        print(f"{'Train' if train else 'Test'} dataset size: {len(self.contexts)}")
 
     def __len__(self):
-        return len(self.dataset['Context'])
+        return len(self.contexts)
 
     def __getitem__(self, idx):
-        # Ensure the context and response for this specific index are used
-        patient_context = self.dataset['Context'][idx]
-        therapist_response = self.dataset['Response'][idx]
+        # Format input with special tokens
+        input_text = f"Patient: {self.contexts[idx]}\nTherapist:"
+        target_text = self.responses[idx]
 
-        # Tokenization remains the same
-        patient_encodings = self.tokenizer(
-            patient_context,
+        # Tokenize input and target separately
+        input_encodings = self.tokenizer(
+            input_text,
             truncation=True,
             max_length=self.max_length,
             padding='max_length',
             return_tensors=None
         )
 
-        therapist_encodings = self.tokenizer(
-            therapist_response,
+        target_encodings = self.tokenizer(
+            target_text,
             truncation=True,
             max_length=self.max_length,
             padding='max_length',
             return_tensors=None
         )
 
-        input_ids = torch.tensor(patient_encodings['input_ids'], dtype=torch.long)
-        attention_mask = torch.tensor(patient_encodings['attention_mask'], dtype=torch.long)
-
-        labels = torch.tensor(therapist_encodings['input_ids'], dtype=torch.long)
+        # Convert to tensors
+        input_ids = torch.tensor(input_encodings['input_ids'], dtype=torch.long)
+        attention_mask = torch.tensor(input_encodings['attention_mask'], dtype=torch.long)
+        
+        # Create labels tensor and mask padding
+        labels = torch.tensor(target_encodings['input_ids'], dtype=torch.long)
         labels[labels == self.tokenizer.pad_token_id] = -100
 
         return {
@@ -126,18 +120,10 @@ class TherapyDataset(Dataset):
 train_dataset = TherapyDataset(dataset, tokenizer, train=True)
 test_dataset = TherapyDataset(dataset, tokenizer, train=False)
 
-# Print patient context
-print("Patient Context:")
-print(tokenizer.decode(train_dataset[0]['input_ids'].tolist(), skip_special_tokens=True))
+# Create data loaders with proper worker initialization
+def worker_init_fn(worker_id):
+    np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-# Print therapist response
-print("Therapist Response:")
-# Filter out -100 values before decoding
-valid_labels = train_dataset[0]['labels']
-valid_labels = valid_labels[valid_labels != -100]
-print(tokenizer.decode(valid_labels.tolist(), skip_special_tokens=True))
-
-# Small batch size and gradient accumulation
 batch_size = 4
 grad_accumulation_steps = 4
 train_loader = DataLoader(
@@ -145,25 +131,27 @@ train_loader = DataLoader(
     batch_size=batch_size,
     shuffle=True,
     num_workers=2,
-    pin_memory=True
+    pin_memory=True,
+    worker_init_fn=worker_init_fn
 )
 test_loader = DataLoader(
     test_dataset,
     batch_size=batch_size,
     shuffle=False,
     num_workers=2,
-    pin_memory=True
+    pin_memory=True,
+    worker_init_fn=worker_init_fn
 )
 
 # Layer unfreezing with proper initialization
 for param in model.parameters():
     param.requires_grad = False
 
-# Unfreeze only last few layers
+# Unfreeze specific layers
 trainable_layers = [
     model.model.decoder.embed_tokens,
     model.model.decoder.embed_positions,
-    *model.model.decoder.layers[-2:],  # Only last 2 layers instead of 4
+    *model.model.decoder.layers[-2:],
     model.lm_head
 ]
 
@@ -171,19 +159,18 @@ for layer in trainable_layers:
     for param in layer.parameters():
         param.requires_grad = True
 
-# Optimizer with lower learning rate and proper weight decay
+# Optimizer with learning rate scheduling
 optimizer = torch.optim.AdamW(
     [p for p in model.parameters() if p.requires_grad],
-    lr=5e-6,  # Lower learning rate
+    lr=5e-6,
     weight_decay=0.01,
-    eps=1e-8,  # Increased epsilon for stability
+    eps=1e-8,
     betas=(0.9, 0.999)
 )
 
-# Add learning rate scheduler
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     optimizer,
-    T_max=10,  # Number of epochs
+    T_max=10,
     eta_min=1e-6
 )
 
@@ -308,6 +295,12 @@ train_losses, test_losses = train_model(
     epochs=10,
     device=device
 )
+
+# Plot training curves
+plt.plot(train_losses, label='Training Loss')
+plt.plot(test_losses, label='Validation Loss')
+plt.legend()
+plt.show()
 
 # Save final model
 torch.save(
