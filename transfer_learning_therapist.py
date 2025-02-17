@@ -121,8 +121,8 @@ test_dataset = TherapyDataset(dataset, tokenizer, train=False)
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-batch_size = 4
-grad_accumulation_steps = 4
+batch_size = 8
+grad_accumulation_steps = 8
 train_loader = DataLoader(
     train_dataset,
     batch_size=batch_size,
@@ -159,7 +159,7 @@ for layer in trainable_layers:
 # Optimizer with learning rate scheduling
 optimizer = torch.optim.AdamW(
     [p for p in model.parameters() if p.requires_grad],
-    lr=5e-6,
+    lr=le-6,
     weight_decay=0.01,
     eps=1e-8,
     betas=(0.9, 0.999)
@@ -204,7 +204,7 @@ def train_epoch(model, optimizer, train_loader, device, grad_accumulation_steps)
             # Gradient clipping
             torch.nn.utils.clip_grad_norm_(
                 model.parameters(),
-                max_norm=1.0
+                max_norm=0.5
             )
             
             # Gradient accumulation
@@ -261,20 +261,6 @@ def train_model(model, optimizer, scheduler, train_loader, test_loader, epochs, 
         
         # Update learning rate
         scheduler.step()
-        
-        # Save checkpoint
-        if (epoch + 1) % 2 == 0:
-            checkpoint = {
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'train_loss': train_loss,
-                'test_loss': test_loss
-            }
-            torch.save(
-                checkpoint,
-                f"/home/adrian/Documents/model-weights/ai-therapist/checkpoint_epoch_{epoch+1}.pth"
-            )
         
         print(f"Epoch {epoch+1}: Train Loss = {train_loss:.4f}, Test Loss = {test_loss:.4f}")
         train_losses.append(train_loss)
