@@ -10,29 +10,21 @@ from datetime import datetime
 # Check device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Load tokenizer and model
-tokenizer_path = "facebook/opt-2.7b"
-model_path = "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_chatbot.pth"
-tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+# Load opt-2.7b
+model_name = "facebook/opt-2.7b"
+print(f"Loading model from: {model_name}")
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 # Create an instance of the model with gradient checkpointing
-config = AutoConfig.from_pretrained(tokenizer_path)
+config = AutoConfig.from_pretrained(model_name)
 config.use_cache = False  # Disable KV cache for training
 config.gradient_checkpointing = True
 
+# Load model directly from Hugging Face
 model = AutoModelForCausalLM.from_pretrained(
-    tokenizer_path,
+    model_name,
     config=config
 )
-
-# Load previous weights
-try:
-    state_dict = torch.load(model_path, map_location=device)
-    model.load_state_dict(state_dict)
-    print("Successfully loaded previous weights")
-except Exception as e:
-    print(f"Error loading weights: {e}")
-    print("Starting with fresh model")
 
 # Move model to device
 model.to(device)
