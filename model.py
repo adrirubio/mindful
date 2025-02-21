@@ -1,6 +1,6 @@
 # Inference code
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-1.3b"
@@ -28,13 +28,13 @@ model.load_state_dict(model_dict)
 model.to(device)
 model.eval()
 
-# Inference function
-def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
+# Improved inference function
+def generate_response(model, tokenizer, user_input, device, max_new_tokens=100):
     model.eval()
     # Enable KV cache for inference
     model.config.use_cache = True
     
-    formatted_input = f"User: {user_input.strip()}\nTherapist:"  # Fixed variable name
+    formatted_input = f"User: {user_input.strip()}\nTherapist:"
     inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
     
     with torch.no_grad():
@@ -54,16 +54,18 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
     model.config.use_cache = False
     
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    therapist_part = response.split("Therapist:")[-1].strip()
+    
+    # Extract only the first therapist response
+    parts = response.split("User:")
+    therapist_part = parts[0].split("Therapist:")[-1].strip()
+    
+    return therapist_part
 
-    return therapist_part  # Return only the therapist part
-
-# Chat loop
-print("AI Therapist is ready.")
-user_input = input("- ")
+# Single response generation
+user_input = input("User: ")
 response = generate_response(model, tokenizer, user_input, device)
 print(f"Therapist: {response}")
 
-# Print disclaimer at the end
+# Print disclaimer
 print("""IMPORTANT: I am an AI project created to demonstrate therapeutic conversation patterns and am not a licensed mental health professional. If you're struggling with any emotional, mental health, or personal challenges, please seek help from a qualified therapist. You can find licensed therapists at BetterHelp.com.
-Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")   
+Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")
