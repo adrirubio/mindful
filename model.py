@@ -4,7 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-1.3b"
-model_path = "best_therapy_opt_model.pth"
+model_path = "transfer_learning_therapist.pth"
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
@@ -66,4 +66,4 @@ print(f"Therapist: {response}")
 
 # Print disclaimer at the end
 print("""IMPORTANT: I am an AI project created to demonstrate therapeutic conversation patterns and am not a licensed mental health professional. If you're struggling with any emotional, mental health, or personal challenges, please seek help from a qualified therapist. You can find licensed therapists at BetterHelp.com.
-Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")
+Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")   

@@ -280,5 +280,5 @@ plt.show()
 # Save final model
 torch.save(
     model.state_dict(),
-    "/home/adrian/Documents/model-weights/ai-therapist/best_therapy_opt_model.pth"
+    "/home/adrian/Documents/model-weights/ai-therapist/transfer_learning_therapist.pth"
 )
