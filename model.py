@@ -1,23 +1,30 @@
 # Inference code
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-1.3b"
-model_path = "transfer_learning_therapist.pth"
+model_path = "best_therapy_opt_model.pth"
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 
-# Set device (you can force CPU by uncommenting the next line)
+# Set device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
+print(f"Using device: {device}")
 
-# Load base model and then custom weights
+# Load base model 
 model = AutoModelForCausalLM.from_pretrained(tokenizer_path)
-model.load_state_dict(torch.load(model_path, map_location=device))
+
+# Properly load the saved checkpoint
+checkpoint = torch.load(model_path, map_location=device)
+model_dict = model.state_dict()
+pretrained_dict = {k: v for k, v in checkpoint['model_state_dict'].items() if k in model_dict}
+model_dict.update(pretrained_dict)
+model.load_state_dict(model_dict)
+
 model.to(device)
 model.eval()
 
@@ -27,7 +34,7 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
     # Enable KV cache for inference
     model.config.use_cache = True
     
-    formatted_input = f"User: {input_text.strip()}\nTherapist:"
+    formatted_input = f"User: {user_input.strip()}\nTherapist:"  # Fixed variable name
     inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
     
     with torch.no_grad():
@@ -43,13 +50,13 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
             repetition_penalty=1.2
         )
     
-    # Disable KV cache again for training
+    # Disable KV cache again
     model.config.use_cache = False
     
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     therapist_part = response.split("Therapist:")[-1].strip()
 
-    return response
+    return therapist_part  # Return only the therapist part
 
 # Chat loop
 print("AI Therapist is ready.")
