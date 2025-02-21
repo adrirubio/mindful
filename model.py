@@ -3,7 +3,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Model and tokenizer paths
-tokenizer_path = "facebook/opt-2.7b"
+tokenizer_path = "facebook/opt-1.3b"
 model_path = "transfer_learning_therapist.pth"
 
 # Load tokenizer
