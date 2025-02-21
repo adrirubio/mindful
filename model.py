@@ -39,10 +39,10 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
     if not user_input:  # Handle empty input case
         return "Please provide a valid input."
 
-    formatted_input = f"User: {user_input}\nTherapist:"  # Format the input prompt
+    # formatted_input = f"Input: {user_input}\nTherapist:"  # Format the input prompt
     
     # Tokenize the input and move to the appropriate device
-    inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
+    inputs = tokenizer(user_input, return_tensors="pt").to(device)
     
     try:
         with torch.no_grad():
