@@ -1,6 +1,6 @@
 # Inference code
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-1.3b"
@@ -28,44 +28,66 @@ model.load_state_dict(model_dict)
 model.to(device)
 model.eval()
 
-# Improved inference function
-def generate_response(model, tokenizer, user_input, device, max_new_tokens=100):
+# Inference function
+def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, temperature=0.7, top_p=0.9, repetition_penalty=1.2):
+    # Ensure the model is in evaluation mode and use cache
     model.eval()
-    # Enable KV cache for inference
     model.config.use_cache = True
+
+    # Clean and validate input
+    user_input = user_input.strip()
+    if not user_input:
+        return "Please provide a valid input."
+
+    # Format the input prompt
+    formatted_input = f"User: {user_input}\nTherapist:"
     
-    formatted_input = f"User: {user_input.strip()}\nTherapist:"
+    # Tokenize the input and move to the appropriate device
     inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
     
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs.input_ids,
-            attention_mask=inputs.attention_mask,
-            max_new_tokens=max_new_tokens,
-            temperature=0.7,
-            top_p=0.9,
-            do_sample=True,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id,
-            repetition_penalty=1.2
-        )
+    try:
+        with torch.no_grad():
+            # Generate the response with flexible parameters
+            outputs = model.generate(
+                inputs.input_ids,
+                attention_mask=inputs.attention_mask,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                top_p=top_p,
+                do_sample=True,
+                pad_token_id=tokenizer.pad_token_id,
+                eos_token_id=tokenizer.eos_token_id,
+                repetition_penalty=repetition_penalty
+            )
+    except Exception as e:
+        return f"Error generating response: {e}"
+    finally:
+        # Reset the use_cache setting
+        model.config.use_cache = False
     
-    # Disable KV cache again
-    model.config.use_cache = False
-    
+    # Decode the output and extract the therapist's response
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    # Extract only the first therapist response
-    parts = response.split("User:")
-    therapist_part = parts[0].split("Therapist:")[-1].strip()
-    
+
+    # Locate the therapist's response in case there's extra text from the prompt.
+    if "Therapist:" in response:
+        # Split and get everything after the first occurrence of "Therapist:"
+        therapist_part = response.split("Therapist:", 1)[1].strip()
+    else:
+        therapist_part = response.strip()
+
+    # Optional: remove any additional user-like prompts that might be appended inadvertently.
+    # For example, if there is any "User:" text in the response, remove it.
+    if "User:" in therapist_part:
+        therapist_part = therapist_part.split("User:")[0].strip()
+
     return therapist_part
 
-# Single response generation
-user_input = input("User: ")
+# Chat loop
+print("AI Therapist is ready.")
+user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
 print(f"Therapist: {response}")
 
-# Print disclaimer
+# Print disclaimer at the end
 print("""IMPORTANT: I am an AI project created to demonstrate therapeutic conversation patterns and am not a licensed mental health professional. If you're struggling with any emotional, mental health, or personal challenges, please seek help from a qualified therapist. You can find licensed therapists at BetterHelp.com.
 Remember, there's no substitute for professional mental healthcare. This is just a demonstration project.""")
