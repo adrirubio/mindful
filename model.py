@@ -4,7 +4,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Model and tokenizer paths
 tokenizer_path = "facebook/opt-2.7b"
-model_path = "/transfer_learning_chatbot.pth"
+model_path = "transfer_learning_therapist.pth"
 
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
@@ -21,15 +21,14 @@ model.load_state_dict(torch.load(model_path, map_location=device))
 model.to(device)
 model.eval()
 
+# Inference function
 def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
-    prompt_template = f"You: {user_input}\nTherapist:"
-    inputs = tokenizer(
-        prompt_template, 
-        return_tensors="pt", 
-        padding=True, 
-        truncation=True, 
-        max_length=256  
-    ).to(device)
+    model.eval()
+    # Enable KV cache for inference
+    model.config.use_cache = True
+    
+    formatted_input = f"User: {input_text.strip()}\nTherapist:"
+    inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
     
     with torch.no_grad():
         outputs = model.generate(
@@ -43,12 +42,13 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150):
             eos_token_id=tokenizer.eos_token_id,
             repetition_penalty=1.2
         )
+    
+    # Disable KV cache again for training
+    model.config.use_cache = False
+    
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    # Extract only the therapist part if needed
-    if "Therapist:" in response:
-        response = response.split("Therapist:")[-1].strip()
-    
+    therapist_part = response.split("Therapist:")[-1].strip()
+
     return response
 
 # Chat loop
