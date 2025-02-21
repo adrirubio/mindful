@@ -66,12 +66,7 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
         model.config.use_cache = False
     
     # Decode the output and extract the therapist's response
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
-    if ":" in response:
-        therapist_part = response.split("User")[0]
-    else:
-        therapist_part = response
+    therapist_part = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     return therapist_part
 
@@ -79,6 +74,8 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
 print("AI Therapist is ready.")
 user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
+if "User" in response:
+    response = response.split("User")[0]
 print(f"Therapist: {response}")
 
 # Print disclaimer at the end
