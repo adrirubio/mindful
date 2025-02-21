@@ -75,7 +75,8 @@ print("AI Therapist is ready.")
 user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
 if "User" in response:
-    response = response.split("User")[0]
+    location = response.find("User")
+    new_text = response[0:location]
 print(f"Therapist: {response}")
 
 # Print disclaimer at the end
