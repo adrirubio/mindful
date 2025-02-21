@@ -30,24 +30,24 @@ model.eval()
 
 # Inference function
 def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, temperature=0.7, top_p=0.9, repetition_penalty=1.2):
-    # Ensure the model is in evaluation mode and use cache
+    # Ensure model is in evaluation mode and using cache for inference
     model.eval()
     model.config.use_cache = True
 
-    # Clean and validate input
+    # Clean the user input and check for emptiness
     user_input = user_input.strip()
     if not user_input:
         return "Please provide a valid input."
 
-    # Format the input prompt
-    formatted_input = f"User: {user_input}\nTherapist:"
+    # Format the prompt to ensure we get only the therapist response.
+    # Using a delimiter that is unique and unlikely to appear in natural text.
+    prompt = f"<<START>>\nUser: {user_input}\nTherapist:"
     
-    # Tokenize the input and move to the appropriate device
-    inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
+    # Tokenize and move the prompt to the specified device
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
     
     try:
         with torch.no_grad():
-            # Generate the response with flexible parameters
             outputs = model.generate(
                 inputs.input_ids,
                 attention_mask=inputs.attention_mask,
@@ -62,25 +62,27 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
     except Exception as e:
         return f"Error generating response: {e}"
     finally:
-        # Reset the use_cache setting
         model.config.use_cache = False
+
+    # Decode the generated text
+    full_output = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    # Decode the output and extract the therapist's response
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-    # Locate the therapist's response in case there's extra text from the prompt.
-    if "Therapist:" in response:
-        # Split and get everything after the first occurrence of "Therapist:"
-        therapist_part = response.split("Therapist:", 1)[1].strip()
+    # Remove everything before the therapist's reply based on the known prompt structure.
+    # First, remove our unique start delimiter.
+    if "<<START>>" in full_output:
+        full_output = full_output.split("<<START>>", 1)[1].strip()
+    
+    # Now, isolate the therapist's response by removing everything up to "Therapist:"
+    if "Therapist:" in full_output:
+        therapist_response = full_output.split("Therapist:", 1)[1].strip()
     else:
-        therapist_part = response.strip()
-
-    # Optional: remove any additional user-like prompts that might be appended inadvertently.
-    # For example, if there is any "User:" text in the response, remove it.
-    if "User:" in therapist_part:
-        therapist_part = therapist_part.split("User:")[0].strip()
-
-    return therapist_part
+        therapist_response = full_output.strip()
+    
+    # Optional: If the response contains extra markers or additional user prompts, remove them.
+    if "User:" in therapist_response:
+        therapist_response = therapist_response.split("User:")[0].strip()
+    
+    return therapist_response
 
 # Chat loop
 print("AI Therapist is ready.")
