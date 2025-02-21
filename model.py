@@ -76,7 +76,7 @@ user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
 if "User" in response:
     location = response.find("User")
-    new_text = response[0:location]
+    response = response[0:location]
 print(f"Therapist: {response}")
 
 # Print disclaimer at the end
