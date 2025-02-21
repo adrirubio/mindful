@@ -68,10 +68,10 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
     # Decode the output and extract the therapist's response
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    if "User" in response:
+    if ":" in response:
         therapist_part = response.split("User")[0]
     else:
-        therapist_part = response.strip()
+        therapist_part = response
 
     return therapist_part
 
