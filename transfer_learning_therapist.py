@@ -11,7 +11,7 @@ from datetime import datetime
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load opt-2.7b
-model_name = "facebook/opt-2.7b"
+model_name = "facebook/opt-1.3b"
 print(f"Loading model from: {model_name}")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
