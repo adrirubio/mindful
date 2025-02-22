@@ -66,9 +66,9 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
         model.config.use_cache = False
     
     # Decode the output and extract the therapist's response
-    therapist_part = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    return therapist_part
+    return response
 
 # Chat loop
 print("AI Therapist is ready.")
