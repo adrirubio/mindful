@@ -88,6 +88,9 @@ if "Human" in response:
 if "Me" in response:
     location = response.find("Me")
     response = response[0:location]
+if "You" in response:
+    location = response.find("You")
+    response = response[0:location]
 print(f"Therapist: {response}")
 
 # Print disclaimer at the end
