@@ -28,7 +28,6 @@ model.load_state_dict(model_dict)
 model.to(device)
 model.eval()
 
-# Inference function
 def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, temperature=0.7, top_p=0.9, repetition_penalty=1.2):
     # Ensure the model is in evaluation mode and use cache
     model.eval()
@@ -39,10 +38,11 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
     if not user_input:  # Handle empty input case
         return "Please provide a valid input."
 
-    # formatted_input = f"Input: {user_input}\nTherapist:"  # Format the input prompt
+    # Format the input with a clear separator and role indicator
+    formatted_input = f"Human: {user_input}\nTherapist:"
     
-    # Tokenize the input and move to the appropriate device
-    inputs = tokenizer(user_input, return_tensors="pt").to(device)
+    # Tokenize the formatted input
+    inputs = tokenizer(formatted_input, return_tensors="pt", truncation=True).to(device)
     
     try:
         with torch.no_grad():
@@ -56,26 +56,34 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
                 do_sample=True,
                 pad_token_id=tokenizer.pad_token_id,
                 eos_token_id=tokenizer.eos_token_id,
-                repetition_penalty=repetition_penalty
+                repetition_penalty=repetition_penalty,
+                # Add parameters to encourage more unique responses
+                num_beams=1,  # Use greedy decoding
+                no_repeat_ngram_size=3,  # Avoid repeating 3-grams
             )
     except Exception as e:
-        # Error handling in case generation fails
         return f"Error generating response: {e}"
     finally:
-        # Ensure to reset the use_cache setting
         model.config.use_cache = False
     
-    # Decode the output and extract the therapist's response
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-    return response
+    # Decode the output and extract only the therapist's response
+    full_response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
+    # Split the response and get only the therapist's part
+    response_parts = full_response.split("Therapist:")
+    if len(response_parts) > 1:
+        therapist_response = response_parts[1].strip()
+    else:
+        therapist_response = full_response.split("Human:")[0].strip()
+    
+    return therapist_response
 
 # Chat loop
 print("AI Therapist is ready.")
 user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
-if "User" in response:
-    location = response.find("User")
+if "Human" in response:
+    location = response.find("Human")
     response = response[0:location]
 print(f"Therapist: {response}")
 
