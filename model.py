@@ -42,7 +42,7 @@ def generate_response(model, tokenizer, user_input, device, max_new_tokens=150, 
     formatted_input = f"Human: {user_input}\nTherapist:"
     
     # Tokenize the formatted input
-    inputs = tokenizer(formatted_input, return_tensors="pt", truncation=True).to(device)
+    inputs = tokenizer(formatted_input, return_tensors="pt").to(device)
     
     try:
         with torch.no_grad():
@@ -84,6 +84,9 @@ user_input = input("- ")
 response = generate_response(model, tokenizer, user_input, device)
 if "Human" in response:
     location = response.find("Human")
+    response = response[0:location]
+if "Me" in response:
+    location = response.find("Me")
     response = response[0:location]
 print(f"Therapist: {response}")
 
