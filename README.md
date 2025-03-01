@@ -9,5 +9,5 @@
 
 Meet Mindful, your AI Wellness Companion – a compassionate, always-available guide for mental well-being.
 
-(Nearly) Use it here at: https://huggingface.co/spaces/pro-grammer/Mindful
+Use it here at: 
 
