@@ -19,8 +19,7 @@ Meet Mindful, your AI Wellness Companion – a compassionate, always-available g
 
 2. **Download the Model Weights**
 
-    Download the required weights from the following link:  
-    [Model Weights on Hugging Face](https://huggingface.co/pro-grammer/MindfulAI)  
+    Download the required weights from the following link:  [Model Weights on Hugging Face](https://huggingface.co/pro-grammer/MindfulAI)  
     After downloading, move the weights into the repository folder.
 
 3. **Run the Model**
