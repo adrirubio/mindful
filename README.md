@@ -9,5 +9,25 @@
 
 Meet Mindful, your AI Wellness Companion – a compassionate, always-available guide for mental well-being. ✅
 
-Use it here at: [inference deployment](https://huggingface.co/spaces/pro-grammer/mindful)
+## How to Use
 
+1. **Clone the Repository**
+
+   Open your terminal and run:
+   ```bash
+   gh repo clone adrirubio/mindful
+
+2. **Download the Model Weights**
+
+Download the required weights from the following link:  
+[Model Weights on Hugging Face](https://huggingface.co/pro-grammer/MindfulAI)  
+After downloading, move the weights into the repository folder.
+
+3. **Run the Model**
+
+Execute the following command in your terminal:
+
+```bash
+python3 model.py
+
+Note: Generating a response may take some time if you do not have access to a sufficiently powerful GPU.
