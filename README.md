@@ -7,7 +7,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/adrirubio/Mindful)
 ![GitHub forks](https://img.shields.io/github/forks/adrirubio/Mindful)
 
-Meet Mindful, your AI Wellness Companion – a compassionate, always-available guide for mental well-being. ✅
+Meet Mindful, your AI Wellness Companion – a compassionate, always-available guide for mental well-being. 
 
 ## How to Use
 
